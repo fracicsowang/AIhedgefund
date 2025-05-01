@@ -8,7 +8,7 @@ import Footer from '@/components/Footer';
 import { useAuth } from '@/lib/auth';
 import { StockData } from '@/types';
 
-// 导入分析代理
+// Import analysis agents
 import { benGrahamStrategy } from '@/agents/benGraham';
 
 interface Agent {
@@ -33,22 +33,22 @@ export default function StockAnalysisPage() {
   const [searchResults, setSearchResults] = useState<string[]>([]);
   const [showResults, setShowResults] = useState(false);
   
-  // 添加OpenAI API Key相关状态
+  // Add OpenAI API Key related states
   const [openAIKey, setOpenAIKey] = useState<string>('');
   const [showKeyInput, setShowKeyInput] = useState<boolean>(false);
   const [keyError, setKeyError] = useState<string | null>(null);
   
-  // 分析流程相关状态
+  // Analysis process related states
   const [agents, setAgents] = useState<Agent[]>([
-    { id: 'benGraham', name: 'Ben Graham', description: '价值投资之父，专注于安全边际和价值选股', selected: true },
-    { id: 'warrenBuffett', name: 'Warren Buffett', description: '关注企业的经济护城河和长期竞争优势', selected: false },
-    { id: 'riskManager', name: '风险控制', description: '评估投资风险，设定止损点', selected: false },
+    { id: 'benGraham', name: 'Ben Graham', description: 'Father of value investing, focused on margin of safety and value stock selection', selected: true },
+    { id: 'warrenBuffett', name: 'Warren Buffett', description: 'Focuses on economic moat and long-term competitive advantages', selected: false },
+    { id: 'riskManager', name: 'Risk Control', description: 'Evaluates investment risks, sets stop loss points', selected: false },
   ]);
   const [analysisSteps, setAnalysisSteps] = useState<{step: string, status: 'waiting' | 'processing' | 'completed' | 'error', message: string}[]>([]);
   const [analysisResults, setAnalysisResults] = useState<{agent: string, decision: string, reasoning: string, confidence?: number, detailedAnalysis?: string}[]>([]);
   const [finalDecision, setFinalDecision] = useState<{decision: string, reasoning: string, confidence: number} | null>(null);
   
-  // 当URL中的symbol参数变化时更新状态
+  // Update status when the symbol parameter in URL changes
   useEffect(() => {
     if (initialSymbol) {
       setSymbol(initialSymbol);
@@ -57,12 +57,12 @@ export default function StockAnalysisPage() {
     }
   }, [initialSymbol]);
   
-  // 模拟股票搜索
+  // Simulate stock search
   const handleSearch = async () => {
     if (!searchInput.trim()) return;
     
     try {
-      // 这里可以替换为实际的API调用
+      // This can be replaced with an actual API call
       setLoading(true);
       setTimeout(() => {
         const results = ['AAPL', 'MSFT', 'GOOG', 'AMZN', 'TSLA'].filter(s => 
@@ -73,122 +73,130 @@ export default function StockAnalysisPage() {
         setLoading(false);
       }, 500);
     } catch (error) {
-      setError('搜索股票时出错');
+      setError('Error searching for stocks');
       setLoading(false);
     }
   };
   
-  // 选择搜索结果
+  // Select search result
   const selectStock = (selectedSymbol: string) => {
     setSymbol(selectedSymbol);
     setSearchInput(selectedSymbol);
     setShowResults(false);
     
-    // 更新URL以反映选择的股票
+    // Update URL to reflect selected stock
     router.push(`/stocks/analysis?symbol=${selectedSymbol}`);
     
-    // 获取股票数据
+    // Get stock data
     fetchStockData(selectedSymbol);
   };
   
-  // 获取股票数据
+  // Get stock data
   const fetchStockData = async (stockSymbol: string) => {
     try {
       setLoading(true);
       setError(null);
-      setStockData(null); // 清除旧数据
-      setAnalysisSteps([]); // 重置分析步骤
-      setAnalysisResults([]); // 重置分析结果
-      setFinalDecision(null); // 重置最终决策
+      setStockData(null); // Clear old data
+      setAnalysisSteps([]); // Reset analysis steps
+      setAnalysisResults([]); // Reset analysis results
+      setFinalDecision(null); // Reset final decision
 
-      // 调用我们的 API 路由
+      // Call our API route
       const response = await fetch(`/api/stocks/${stockSymbol}`);
       
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || `获取 ${stockSymbol} 数据失败: ${response.statusText}`);
+        throw new Error(errorData.error || `Failed to get ${stockSymbol} data: ${response.statusText}`);
       }
 
       const data: StockData = await response.json();
       setStockData(data);
       
     } catch (error: any) {
-      console.error('获取股票数据失败:', error);
-      setError(error.message || '获取股票数据时发生未知错误');
-      setStockData(null); // 确保出错时清空数据
+      console.error('Failed to fetch stock data:', error);
+      setError(error.message || 'Unknown error occurred while getting stock data');
+      setStockData(null); // Ensure data is cleared on error
     } finally {
       setLoading(false);
     }
   };
   
-  // 切换代理选择
+  // Toggle agent selection
   const toggleAgent = (agentId: string) => {
     setAgents(agents.map(agent => 
       agent.id === agentId ? { ...agent, selected: !agent.selected } : agent
     ));
   };
   
-  // 开始分析流程
+  // Start analysis process
   const startAnalysis = async () => {
+    console.log('Button clicked');
+    
+    // Checkpoint 1: Stock data?
     if (!stockData) {
-      setError('请先选择股票');
+      setError('Please select a stock first');
+      console.log('Exiting: No stock data selected.');
       return;
     }
-    
+    console.log('Checkpoint 1 Passed: Stock data exists.');
+
+    // Checkpoint 2: Agents selected?
     const selectedAgents = agents.filter(agent => agent.selected);
     if (selectedAgents.length === 0) {
-      setError('请至少选择一个分析师');
+      setError('Please select at least one analyst');
+      console.log('Exiting: No agents selected.');
       return;
     }
-    
-    // 验证API Key（如果Ben Graham被选中）
-    const benGrahamSelected = selectedAgents.some(agent => agent.id === 'benGraham');
-    if (benGrahamSelected && (!openAIKey || openAIKey.trim() === '')) {
-      setKeyError('使用Ben Graham策略需要OpenAI API Key');
-      setShowKeyInput(true);
-      return;
-    }
-    
+    console.log('Checkpoint 2 Passed: Agents selected.', selectedAgents);
+
     setAnalyzing(true);
     setError(null);
-    setKeyError(null);
     setAnalysisSteps([]);
     setAnalysisResults([]);
     setFinalDecision(null);
     
     try {
-      // 第一步：初始化分析过程
+      // Add console.log for debugging
+      console.log('Starting analysis process');
+      console.log('Selected stock data:', stockData);
+      console.log('Selected agents:', selectedAgents);
+      
+      // Step 1: Initialize analysis process
       setAnalysisSteps(prev => [...prev, {
-        step: '初始化分析过程',
+        step: 'Initialize Analysis Process',
         status: 'processing',
-        message: '准备分析数据...'
+        message: 'Preparing analysis data...'
       }]);
       
-      // 模拟延迟
+      // Simulate delay
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       setAnalysisSteps(prev => [
         ...prev.slice(0, -1),
-        { ...prev[prev.length - 1], status: 'completed', message: '分析数据准备完成' }
+        { ...prev[prev.length - 1], status: 'completed', message: 'Analysis data preparation complete' }
       ]);
       
-      // 第二步：分析师评估
+      // Step 2: Analyst evaluation
+      const allResults = [];
       for (const agent of selectedAgents) {
         setAnalysisSteps(prev => [...prev, {
-          step: `${agent.name}分析`,
+          step: `${agent.name} Analysis`,
           status: 'processing',
-          message: `${agent.name}正在分析${stockData.symbol}...`
+          message: `${agent.name} is analyzing ${stockData.symbol}...`
         }]);
         
-        // 模拟不同的分析时间
+        // Simulate different analysis times
         await new Promise(resolve => setTimeout(resolve, 1500 + Math.random() * 1000));
         
-        // 根据代理ID获取实际分析结果
+        // Get actual analysis results based on agent ID
         let result;
         if (agent.id === 'benGraham') {
-          // 使用实际的Ben Graham代理
+          // Use actual Ben Graham agent
           try {
-            // 调用API端点进行分析，并传递用户提供的API Key
+            // Add debug log before sending to backend
+            console.log('[Frontend] stockData to be sent:', stockData);
+
+            // Call API endpoint for analysis, passing user's API Key
             const response = await fetch('/api/agent-decision/benGraham', {
               method: 'POST',
               headers: {
@@ -201,7 +209,7 @@ export default function StockAnalysisPage() {
             });
             
             if (!response.ok) {
-              throw new Error(`分析请求失败: ${response.statusText}`);
+              throw new Error(`Analysis request failed: ${response.statusText}`);
             }
             
             const grahamResult = await response.json();
@@ -213,51 +221,52 @@ export default function StockAnalysisPage() {
               detailedAnalysis: grahamResult.detailedAnalysis
             };
           } catch (error) {
-            console.error('执行Graham策略时出错:', error);
+            console.error('Error executing Graham strategy:', error);
             result = {
               agent: agent.name,
               decision: 'HOLD',
-              reasoning: '分析过程中出现错误，建议持有等待更多数据。',
+              reasoning: 'Error occurred during analysis, recommend holding until more data is available.',
               confidence: 50
             };
           }
         } else {
-          // 模拟其他代理的结果
+          // Simulate results for other agents
           const decisions = ['BUY', 'SELL', 'HOLD'];
           const randomDecision = decisions[Math.floor(Math.random() * decisions.length)];
           
           result = {
             agent: agent.name,
             decision: randomDecision,
-            reasoning: `基于${agent.id}的分析方法，${randomDecision === 'BUY' ? '发现该股票具有投资价值' : 
-              randomDecision === 'SELL' ? '该股票存在风险因素' : '建议持有观望'}。`,
+            reasoning: `Based on ${agent.id}'s analysis method, ${randomDecision === 'BUY' ? 'this stock shows investment value' : 
+              randomDecision === 'SELL' ? 'this stock has risk factors' : 'holding and observing is recommended'}.`,
             confidence: 60 + Math.random() * 30
           };
         }
         
-        setAnalysisResults(prev => [...prev, result]);
+        allResults.push(result);
         
         setAnalysisSteps(prev => [
           ...prev.slice(0, -1),
           { 
             ...prev[prev.length - 1], 
             status: 'completed', 
-            message: `${agent.name}分析完成: ${result.decision}`
+            message: `${agent.name} analysis complete: ${result.decision}`
           }
         ]);
       }
+      setAnalysisResults(allResults);
       
-      // 第三步：风险管理
+      // Step 3: Risk management
       setAnalysisSteps(prev => [...prev, {
-        step: '风险管理评估',
+        step: 'Risk Management Assessment',
         status: 'processing',
-        message: '评估投资风险...'
+        message: 'Evaluating investment risk...'
       }]);
       
       await new Promise(resolve => setTimeout(resolve, 2000));
       
       const riskAssessment = {
-        riskLevel: Math.random() < 0.7 ? '适中' : '较高',
+        riskLevel: Math.random() < 0.7 ? 'Moderate' : 'High',
         stopLoss: (stockData.price?.regularMarketPrice || 0) * 0.9,
         maxDrawdown: '10%'
       };
@@ -267,30 +276,29 @@ export default function StockAnalysisPage() {
         { 
           ...prev[prev.length - 1], 
           status: 'completed', 
-          message: `风险等级: ${riskAssessment.riskLevel}, 建议止损点: $${riskAssessment.stopLoss.toFixed(2)}`
+          message: `Risk level: ${riskAssessment.riskLevel}, Recommended stop loss: $${riskAssessment.stopLoss.toFixed(2)}`
         }
       ]);
       
-      // 第四步：投资组合管理器决策
+      // Step 4: Portfolio manager decision
       setAnalysisSteps(prev => [...prev, {
-        step: '投资组合管理',
+        step: 'Portfolio Management',
         status: 'processing',
-        message: '生成最终投资决策...'
+        message: 'Generating final investment decision...'
       }]);
       
       await new Promise(resolve => setTimeout(resolve, 1500));
       
-      // 统计各决策的数量和总信心
+      // Count decisions and total confidence
       const decisionCounts = { BUY: 0, SELL: 0, HOLD: 0 };
       const decisionConfidence = { BUY: 0, SELL: 0, HOLD: 0 };
-      
-      analysisResults.forEach(result => {
+      allResults.forEach(result => {
         const decision = result.decision as keyof typeof decisionCounts;
         decisionCounts[decision]++;
         decisionConfidence[decision] += result.confidence || 0;
       });
       
-      // 找出最多的决策
+      // Find the most common decision
       let finalDecisionType = 'HOLD';
       let maxCount = 0;
       
@@ -300,22 +308,22 @@ export default function StockAnalysisPage() {
           finalDecisionType = decision;
         } else if (decisionCounts[decision] === maxCount && 
                   decisionConfidence[decision] > decisionConfidence[finalDecisionType as keyof typeof decisionConfidence]) {
-          // 如果计数相同，选择置信度更高的
+          // If counts are equal, choose the one with higher confidence
           finalDecisionType = decision;
         }
       });
       
-      // 计算平均置信度
+      // Calculate average confidence
       const avgConfidence = decisionConfidence[finalDecisionType as keyof typeof decisionConfidence] / 
                            (decisionCounts[finalDecisionType as keyof typeof decisionCounts] || 1);
       
-      // 生成最终决策对象
+      // Generate final decision object
       const decision = {
         decision: finalDecisionType,
-        reasoning: `基于${analysisResults.length}位分析师的评估，综合考虑各因素后，建议` + 
-          (finalDecisionType === 'BUY' ? '买入' :
-           finalDecisionType === 'SELL' ? '卖出' : '持有') +
-          `该股票。风险等级: ${riskAssessment.riskLevel}。`,
+        reasoning: `Based on assessments from ${allResults.length} analysts, considering all factors, the recommendation is to ` + 
+          (finalDecisionType === 'BUY' ? 'buy' :
+           finalDecisionType === 'SELL' ? 'sell' : 'hold') +
+          ` this stock. Risk level: ${riskAssessment.riskLevel}.`,
         confidence: avgConfidence
       };
       
@@ -326,16 +334,16 @@ export default function StockAnalysisPage() {
         { 
           ...prev[prev.length - 1], 
           status: 'completed', 
-          message: `最终决策: ${decision.decision}, 置信度: ${decision.confidence.toFixed(0)}%`
+          message: `Final decision: ${decision.decision}, Confidence: ${decision.confidence.toFixed(0)}%`
         }
       ]);
       
     } catch (err) {
-      console.error('分析过程出错:', err);
-      setError('分析过程中出现错误，请重试');
+      console.error('Error in analysis process:', err);
+      setError('An error occurred during analysis, please try again');
       setAnalysisSteps(prev => [
         ...prev.slice(0, -1),
-        { ...prev[prev.length - 1], status: 'error', message: '分析过程中出现错误' }
+        { ...prev[prev.length - 1], status: 'error', message: 'Error during analysis process' }
       ]);
     } finally {
       setAnalyzing(false);
@@ -348,18 +356,18 @@ export default function StockAnalysisPage() {
       
       <main className="flex-grow py-8">
         <div className="container mx-auto px-4">
-          <h1 className="text-3xl font-bold mb-8">股票详细分析</h1>
+          <h1 className="text-3xl font-bold mb-8">Detailed Stock Analysis</h1>
           
-          {/* 第一步：股票搜索区域 */}
+          {/* Step 1: Stock search area */}
           <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-            <h2 className="text-xl font-semibold mb-4">第一步：选择股票</h2>
+            <h2 className="text-xl font-semibold mb-4">Step 1: Select a Stock</h2>
             
             <div className="relative">
               <div className="flex mb-2">
                 <input
                   type="text"
                   className="w-full px-4 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="输入股票代码或名称..."
+                  placeholder="Enter stock code or name..."
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -369,7 +377,7 @@ export default function StockAnalysisPage() {
                   onClick={handleSearch}
                   disabled={loading}
                 >
-                  {loading ? '搜索中...' : '搜索'}
+                  {loading ? 'Searching...' : 'Search'}
                 </button>
               </div>
               
@@ -391,12 +399,12 @@ export default function StockAnalysisPage() {
               
               {showResults && searchResults.length === 0 && (
                 <div className="text-gray-600 mt-2">
-                  未找到结果，请尝试其他关键词
+                  No results found, please try other keywords
                 </div>
               )}
             </div>
             
-            {/* 已选股票信息 */}
+            {/* Selected stock information */}
             {stockData && (
               <div className="mt-6 p-4 bg-gray-50 rounded-md">
                 <div className="flex justify-between items-center">
@@ -418,282 +426,176 @@ export default function StockAnalysisPage() {
             )}
           </div>
           
-          {/* OpenAI API Key 输入部分 */}
-          {stockData && (
-            <div className="bg-white p-6 rounded-lg shadow-md mb-8">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold">OpenAI API Key</h2>
-                <button 
-                  onClick={() => setShowKeyInput(!showKeyInput)}
-                  className="text-sm text-blue-600 hover:text-blue-800"
-                >
-                  {showKeyInput ? '隐藏' : '显示'}
-                </button>
-              </div>
-              
-              {showKeyInput ? (
-                <>
-                  <p className="text-gray-600 mb-4">
-                    使用Ben Graham策略需要OpenAI API Key。您可以在此输入您的API Key，它只会用于本次分析，不会被保存。
-                  </p>
-                  <div className="mb-4">
-                    <input
-                      type="text"
-                      value={openAIKey}
-                      onChange={(e) => {
-                        setOpenAIKey(e.target.value);
-                        setKeyError(null);
-                      }}
-                      placeholder="sk-..."
-                      className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    {keyError && (
-                      <p className="mt-2 text-red-600 text-sm">{keyError}</p>
-                    )}
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <a 
-                      href="https://platform.openai.com/api-keys" 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-sm text-blue-600 hover:text-blue-800"
-                    >
-                      获取OpenAI API Key
-                    </a>
-                    <button
-                      onClick={() => {
-                        if (!openAIKey.trim().startsWith('sk-')) {
-                          setKeyError('API Key格式不正确，应以sk-开头');
-                          return;
-                        }
-                        setKeyError(null);
-                        setShowKeyInput(false);
-                      }}
-                      className="bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700"
-                    >
-                      确认
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <p className="text-gray-600">
-                  {openAIKey ? '已设置API Key' : '未设置API Key，将使用基本分析算法'} 
-                  {openAIKey && (
-                    <span className="ml-2 text-sm text-green-600">
-                      (已设置：{openAIKey.substring(0, 5)}...{openAIKey.substring(openAIKey.length - 4)})
-                    </span>
-                  )}
-                </p>
-              )}
-            </div>
-          )}
-          
-          {/* 第二步：选择分析师 */}
+          {/* Step 2: Select analysts */}
           <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-            <h2 className="text-xl font-semibold mb-4">第二步：选择分析师</h2>
+            <h2 className="text-xl font-semibold mb-4">Step 2: Select Analysts</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {agents.map((agent) => (
                 <div 
                   key={agent.id}
                   className={`border p-4 rounded-md cursor-pointer transition-colors ${
-                    agent.selected ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
+                    agent.selected ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-blue-300'
                   }`}
                   onClick={() => toggleAgent(agent.id)}
                 >
                   <div className="flex items-center mb-2">
-                    <input
-                      type="checkbox"
-                      id={`agent-${agent.id}`}
+                    <input 
+                      type="checkbox" 
                       checked={agent.selected}
                       onChange={() => toggleAgent(agent.id)}
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 mr-2"
-                      aria-label={`选择${agent.name}分析师`}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      aria-label={`Select ${agent.name} analyst`}
                     />
-                    <label htmlFor={`agent-${agent.id}`} className="font-medium">{agent.name}</label>
+                    <h3 className="text-lg font-medium ml-2">{agent.name}</h3>
                   </div>
-                  <p className="text-sm text-gray-600">{agent.description}</p>
+                  <p className="text-gray-600 text-sm">{agent.description}</p>
                 </div>
               ))}
             </div>
           </div>
           
-          {/* 第三步：分析按钮 */}
-          <div className="bg-white rounded-lg shadow-md p-6 mb-8 text-center">
-            <h2 className="text-xl font-semibold mb-4">第三步：开始分析</h2>
+          {/* Start analysis button */}
+          <div className="text-center mb-8">
+            <button
+              onClick={startAnalysis}
+              disabled={!stockData || analyzing}
+              className="bg-blue-900 text-white py-3 px-8 rounded-md hover:bg-blue-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-lg font-medium"
+            >
+              {analyzing ? 'Analysis in Progress...' : 'Start Analysis'}
+            </button>
             
             {error && (
-              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+              <div className="mt-4 p-3 bg-red-100 text-red-700 rounded-md">
                 {error}
               </div>
             )}
-            
-            <button
-              className="bg-blue-900 text-white px-6 py-3 rounded-md hover:bg-blue-800 transition-colors disabled:opacity-50"
-              onClick={startAnalysis}
-              disabled={!stockData || analyzing}
-            >
-              {analyzing ? '分析中...' : '分析股票'}
-            </button>
           </div>
           
-          {/* 第四步：分析过程与结果 */}
+          {/* Analysis process display */}
           {analysisSteps.length > 0 && (
             <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-              <h2 className="text-xl font-semibold mb-4">第四步：分析过程与结果</h2>
+              <h2 className="text-xl font-semibold mb-4">Analysis Progress</h2>
               
-              {/* 分析步骤展示 */}
-              <div className="mb-8">
-                <h3 className="font-medium text-lg mb-3">分析步骤</h3>
-                <ul className="border rounded-md divide-y">
-                  {analysisSteps.map((step, index) => (
-                    <li key={index} className="p-4 flex items-center">
-                      {step.status === 'waiting' && (
-                        <span className="w-5 h-5 bg-gray-300 rounded-full mr-3"></span>
+              <div className="space-y-4">
+                {analysisSteps.map((step, index) => (
+                  <div key={index} className="flex items-start">
+                    <div className={`flex-shrink-0 h-6 w-6 rounded-full flex items-center justify-center mr-3 mt-0.5 ${
+                      step.status === 'completed' ? 'bg-green-100 text-green-600' :
+                      step.status === 'processing' ? 'bg-blue-100 text-blue-600' :
+                      step.status === 'error' ? 'bg-red-100 text-red-600' :
+                      'bg-gray-100 text-gray-600'
+                    }`}>
+                      {step.status === 'completed' && (
+                        <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
                       )}
                       {step.status === 'processing' && (
-                        <span className="w-5 h-5 rounded-full mr-3 bg-blue-500 animate-pulse"></span>
-                      )}
-                      {step.status === 'completed' && (
-                        <span className="w-5 h-5 bg-green-500 rounded-full mr-3 flex items-center justify-center text-white">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                          </svg>
-                        </span>
+                        <div className="h-3 w-3 rounded-full bg-blue-600 animate-pulse"></div>
                       )}
                       {step.status === 'error' && (
-                        <span className="w-5 h-5 bg-red-500 rounded-full mr-3 flex items-center justify-center text-white">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                        </span>
+                        <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                        </svg>
                       )}
-                      <div>
-                        <p className="font-medium">{step.step}</p>
-                        <p className="text-sm text-gray-600">{step.message}</p>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
+                    </div>
+                    <div>
+                      <h4 className="font-medium">{step.step}</h4>
+                      <p className="text-gray-600 text-sm">{step.message}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {/* Analysis results */}
+          {finalDecision && (
+            <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+              <h2 className="text-xl font-semibold mb-6">Analysis Results</h2>
+              
+              {/* Final decision card */}
+              <div className={`p-6 rounded-lg mb-8 ${
+                finalDecision.decision === 'BUY' ? 'bg-green-50 border border-green-200' :
+                finalDecision.decision === 'SELL' ? 'bg-red-50 border border-red-200' :
+                'bg-yellow-50 border border-yellow-200'
+              }`}>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-bold">Final Decision</h3>
+                  <div className={`px-4 py-1 rounded-full font-medium ${
+                    finalDecision.decision === 'BUY' ? 'bg-green-600 text-white' :
+                    finalDecision.decision === 'SELL' ? 'bg-red-600 text-white' :
+                    'bg-yellow-600 text-white'
+                  }`}>
+                    {finalDecision.decision}
+                  </div>
+                </div>
+                
+                <p className="mb-4">{finalDecision.reasoning}</p>
+                
+                <div className="flex items-center">
+                  <span className="text-gray-600 mr-2">Confidence:</span>
+                  <div className="w-full bg-gray-200 rounded-full h-2.5 mr-2">
+                    <div className={`h-2.5 rounded-full ${
+                      finalDecision.confidence > 80 ? 'bg-green-600' :
+                      finalDecision.confidence > 60 ? 'bg-blue-600' :
+                      finalDecision.confidence > 40 ? 'bg-yellow-600' : 'bg-red-600'
+                    }`} style={{ width: `${finalDecision.confidence}%` }}></div>
+                  </div>
+                  <span className="text-sm font-medium">{finalDecision.confidence.toFixed(0)}%</span>
+                </div>
               </div>
               
-              {/* 分析师结果展示 */}
-              {analysisResults.length > 0 && (
-                <div className="mb-8">
-                  <h3 className="font-medium text-lg mb-3">分析师结果</h3>
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                    {analysisResults.map((result, index) => (
-                      <div key={index} className="border rounded-md p-4">
-                        <div className="flex justify-between items-center mb-3">
-                          <h4 className="font-medium">{result.agent}的分析</h4>
-                          <span className={`px-3 py-1 rounded-full text-white ${
-                            result.decision === 'BUY' ? 'bg-green-500' :
-                            result.decision === 'SELL' ? 'bg-red-500' : 'bg-yellow-500'
-                          }`}>
-                            {result.decision}
-                          </span>
-                        </div>
-                        <p className="text-gray-700 mb-3">{result.reasoning}</p>
-                        
-                        {/* 显示详细分析按钮（如果有） */}
-                        {result.detailedAnalysis && (
-                          <div className="mt-3">
-                            <button 
-                              onClick={() => {
-                                // 创建一个临时元素，用于展示完整分析
-                                const tempModal = document.createElement('div');
-                                tempModal.className = 'fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4';
-                                tempModal.innerHTML = `
-                                  <div class="bg-white rounded-lg max-w-4xl w-full max-h-[80vh] overflow-auto p-6">
-                                    <div class="flex justify-between items-center mb-4">
-                                      <h3 class="text-xl font-bold">${result.agent}的详细分析</h3>
-                                      <button class="text-gray-500 hover:text-gray-700" id="close-modal">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                        </svg>
-                                      </button>
-                                    </div>
-                                    <div class="prose max-w-none">
-                                      <div class="whitespace-pre-wrap">
-                                        ${result.detailedAnalysis?.replace(/\n/g, '<br>') || '无详细分析数据'}
-                                      </div>
-                                    </div>
-                                  </div>
-                                `;
-                                document.body.appendChild(tempModal);
-                                
-                                // 添加关闭事件
-                                document.getElementById('close-modal')?.addEventListener('click', () => {
-                                  document.body.removeChild(tempModal);
-                                });
-                              }}
-                              className="text-blue-600 hover:text-blue-800 flex items-center"
-                            >
-                              <span>查看思考过程</span>
-                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                              </svg>
-                            </button>
-                          </div>
-                        )}
-                        
-                        {result.confidence && (
-                          <div className="mt-2">
-                            <div className="flex justify-between mb-1">
-                              <span className="text-sm text-gray-600">置信度</span>
-                              <span className="text-sm font-medium">{result.confidence.toFixed(0)}%</span>
-                            </div>
-                            <div className="w-full bg-gray-200 rounded-full h-2">
-                              <div
-                                className={`h-2 rounded-full ${
-                                  result.decision === 'BUY' ? 'bg-green-500' :
-                                  result.decision === 'SELL' ? 'bg-red-500' : 'bg-yellow-500'
-                                }`}
-                                style={{ width: `${result.confidence}%` }}
-                              ></div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+              {/* Individual analyst results */}
+              <h3 className="text-lg font-semibold mb-4">Analyst Opinions</h3>
               
-              {/* 最终决策展示 */}
-              {finalDecision && (
-                <div>
-                  <h3 className="font-medium text-lg mb-3">最终决策</h3>
-                  <div className="border-2 border-blue-900 rounded-md p-6 bg-blue-50">
-                    <div className="flex justify-between items-center mb-4">
-                      <h4 className="text-xl font-bold">投资组合管理器决策</h4>
-                      <span className={`px-4 py-2 rounded-full text-white text-lg font-bold ${
-                        finalDecision.decision === 'BUY' ? 'bg-green-600' :
-                        finalDecision.decision === 'SELL' ? 'bg-red-600' : 'bg-yellow-600'
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {analysisResults.map((result, index) => (
+                  <div key={index} className="border rounded-lg p-4">
+                    <div className="flex justify-between items-center mb-3">
+                      <h4 className="font-bold">{result.agent}</h4>
+                      <div className={`px-3 py-1 text-xs rounded-full font-medium ${
+                        result.decision === 'BUY' ? 'bg-green-100 text-green-800' :
+                        result.decision === 'SELL' ? 'bg-red-100 text-red-800' :
+                        'bg-yellow-100 text-yellow-800'
                       }`}>
-                        {finalDecision.decision === 'BUY' ? '买入' :
-                         finalDecision.decision === 'SELL' ? '卖出' : '持有'}
-                      </span>
-                    </div>
-                    <p className="text-gray-800 mb-4 text-lg">{finalDecision.reasoning}</p>
-                    <div className="mt-4">
-                      <div className="flex justify-between mb-1">
-                        <span className="text-gray-700">决策置信度</span>
-                        <span className="font-medium">{finalDecision.confidence.toFixed(0)}%</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-3">
-                        <div
-                          className={`h-3 rounded-full ${
-                            finalDecision.decision === 'BUY' ? 'bg-green-600' :
-                            finalDecision.decision === 'SELL' ? 'bg-red-600' : 'bg-yellow-600'
-                          }`}
-                          style={{ width: `${finalDecision.confidence}%` }}
-                        ></div>
+                        {result.decision}
                       </div>
                     </div>
+                    
+                    <p className="text-gray-700 text-sm mb-3">{result.reasoning}</p>
+                    
+                    {result.confidence && (
+                      <div className="flex items-center">
+                        <span className="text-xs text-gray-500 mr-2">Confidence:</span>
+                        <div className="w-full bg-gray-200 rounded-full h-1.5 mr-2">
+                          <div className={`h-1.5 rounded-full ${
+                            result.confidence > 80 ? 'bg-green-600' :
+                            result.confidence > 60 ? 'bg-blue-600' :
+                            result.confidence > 40 ? 'bg-yellow-600' : 'bg-red-600'
+                          }`} style={{ width: `${result.confidence}%` }}></div>
+                        </div>
+                        <span className="text-xs font-medium">{result.confidence.toFixed(0)}%</span>
+                      </div>
+                    )}
+                    
+                    {result.detailedAnalysis && (
+                      <div className="mt-3 pt-3 border-t border-gray-200">
+                        <button
+                          className="text-sm text-blue-600 hover:text-blue-800"
+                          onClick={() => {
+                            // Here you can implement expand/collapse detailed analysis
+                            console.log('Show detailed analysis');
+                          }}
+                        >
+                          Show detailed analysis
+                        </button>
+                      </div>
+                    )}
                   </div>
-                </div>
-              )}
+                ))}
+              </div>
             </div>
           )}
         </div>

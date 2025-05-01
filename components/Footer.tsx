@@ -10,32 +10,32 @@ export default function Footer() {
         <nav className="flex flex-wrap justify-center -mx-5 -my-2">
           <div className="px-5 py-2">
             <Link href="/about" className="text-base hover:text-white">
-              关于我们
+              About Us
             </Link>
           </div>
           <div className="px-5 py-2">
             <Link href="/pricing" className="text-base hover:text-white">
-              订阅方案
+              Subscription Plans
             </Link>
           </div>
           <div className="px-5 py-2">
             <Link href="/privacy" className="text-base hover:text-white">
-              隐私政策
+              Privacy Policy
             </Link>
           </div>
           <div className="px-5 py-2">
             <Link href="/terms" className="text-base hover:text-white">
-              使用条款
+              Terms of Use
             </Link>
           </div>
           <div className="px-5 py-2">
             <Link href="/contact" className="text-base hover:text-white">
-              联系我们
+              Contact Us
             </Link>
           </div>
         </nav>
         <div className="mt-8 flex justify-center space-x-6">
-          {/* 社交媒体图标 */}
+          {/* Social media icons */}
           <a href="#" className="text-blue-300 hover:text-white">
             <span className="sr-only">Twitter</span>
             <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -59,7 +59,7 @@ export default function Footer() {
           &copy; {currentYear} AI Hedge Fund. All rights reserved.
         </p>
         <p className="mt-2 text-center text-sm">
-          免责声明：本网站提供的所有投资建议仅供参考，不构成任何投资决策建议。投资有风险，入市需谨慎。
+          Disclaimer: All investment advice provided on this website is for reference only and does not constitute any investment decision recommendation. Investments involve risks, please proceed with caution.
         </p>
       </div>
     </footer>

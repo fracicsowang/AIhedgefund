@@ -2,7 +2,7 @@ import { StockData } from '@/types';
 import OpenAI from 'openai';
 
 /**
- * Ben Graham信号类型
+ * Ben Graham signal types
  */
 type SignalType = 'BUY' | 'SELL' | 'HOLD';
 type GrahamSignalType = 'bullish' | 'bearish' | 'neutral';
@@ -24,6 +24,9 @@ interface FinancialLineItem {
   current_liabilities?: number;
   dividends_and_other_cash_distributions?: number;
   outstanding_shares?: number;
+  current_ratio?: number;
+  debt_to_equity?: number;
+  market_cap?: number;
 }
 
 interface GrahamAnalysisResult {
@@ -32,32 +35,45 @@ interface GrahamAnalysisResult {
 }
 
 /**
- * Ben Graham策略 - 价值投资之父
- * 关注安全边际，寻找被低估的股票
+ * Ben Graham Strategy - Father of Value Investing
+ * Focuses on margin of safety, looking for undervalued stocks
  */
-export async function benGrahamStrategy(stockData: StockData): Promise<{
+export async function benGrahamStrategy(stockData: StockData, apiKey: string | null = null): Promise<{
   decision: SignalType;
   reasoning: string;
+  confidence?: number;
+  detailedAnalysis?: string;
 }> {
+  // Validate required fields
+  if (!stockData.earningsPerShare || !stockData.currentRatio || !stockData.debtToEquity || !stockData.marketCap) {
+    console.error('[BenGraham] Missing required fields in stockData:', stockData);
+    throw new Error('Missing required fields in stockData');
+  }
+
+  // Extract metrics
+  const eps = stockData.earningsPerShare;
+  const currentRatio = stockData.currentRatio;
+  const debtToEquity = stockData.debtToEquity;
+  const marketCap = stockData.marketCap;
+
+  // Log extracted metrics
+  console.log('[BenGraham] Extracted metrics:', { eps, currentRatio, debtToEquity, marketCap });
+
   try {
-    // 提取基本财务指标
-    const metrics = extractFinancialMetrics(stockData);
+    // Analyze earnings stability
+    const earningsAnalysis = analyzeEarningsStability({ earnings_per_share: eps });
     
-    // 分析盈利稳定性
-    const earningsAnalysis = analyzeEarningsStability(metrics);
+    // Analyze financial strength
+    const strengthAnalysis = analyzeFinancialStrength({ current_ratio: currentRatio, debt_to_equity: debtToEquity });
     
-    // 分析财务实力
-    const strengthAnalysis = analyzeFinancialStrength(metrics);
+    // Analyze valuation
+    const valuationAnalysis = analyzeValuationGraham({ earnings_per_share: eps, book_value_per_share: 1 }, marketCap);
     
-    // 分析价值评估
-    const marketCap = calculateMarketCap(stockData);
-    const valuationAnalysis = analyzeValuationGraham(metrics, marketCap);
-    
-    // 计算总分
+    // Calculate total score
     const totalScore = earningsAnalysis.score + strengthAnalysis.score + valuationAnalysis.score;
-    const maxPossibleScore = 15; // 所有分析函数的总可能分数
+    const maxPossibleScore = 15; // Total possible score from all analysis functions
     
-    // 生成详细分析结果
+    // Generate detailed analysis results
     const analysisData = {
       signal: mapScoreToSignal(totalScore, maxPossibleScore),
       score: totalScore,
@@ -67,57 +83,37 @@ export async function benGrahamStrategy(stockData: StockData): Promise<{
       valuation_analysis: valuationAnalysis
     };
     
-    // 打印调试信息
-    console.log(`Graham分析 - 股票代码: ${stockData.symbol}, 总分: ${totalScore}/${maxPossibleScore}`);
-    const apiKey = process.env.OPENAI_API_KEY || '';
-    // 处理可能的换行符
-    const cleanApiKey = apiKey.replace(/\r?\n/g, '');
-    
-    console.log(`OpenAI API密钥状态: ${cleanApiKey ? `已设置 (前10个字符: ${cleanApiKey.substring(0, 10)}...)` : '未设置'}`);
-    console.log(`密钥长度: ${cleanApiKey.length} 字符`);
-    
-    // Modified: Always use basic algorithm regardless of API key
-    console.log('使用基本算法分析 (跳过OpenAI调用)');
-    return generateBasicDecision(analysisData);
-    
-    /* Original code commented out:
-    // 尝试直接检查原始环境变量
-    console.log('开始强制测试OpenAI API');
-    
-    // 如果有OpenAI API密钥，使用GPT生成更详细的分析
-    if (cleanApiKey && cleanApiKey !== '您的OpenAI密钥') {
-      console.log('尝试使用OpenAI进行分析...');
+    // Decide whether to use OpenAI
+    if (apiKey) {
+      console.log('Attempting to use OpenAI for analysis...');
       try {
-        // 为确保API密钥在调用时可用，直接将其传递给函数
-        const grahamSignal = await generateGrahamOutput(stockData.symbol || '', analysisData, cleanApiKey);
+        const grahamSignal = await generateGrahamOutput(stockData.symbol || '', analysisData, apiKey);
         return mapGrahamSignalToDecision(grahamSignal);
       } catch (error) {
-        console.error('OpenAI分析失败，回退到基本算法:', error);
+        console.error('OpenAI analysis failed, falling back to basic algorithm:', error);
         return generateBasicDecision(analysisData);
       }
     } else {
-      console.log('使用基本算法分析 (未使用OpenAI)');
-      // 如果没有OpenAI API密钥，使用基本逻辑生成决策
+      console.log('Using basic algorithm for analysis (OpenAI not used)');
       return generateBasicDecision(analysisData);
     }
-    */
   } catch (error) {
-    console.error('BenGraham策略分析错误:', error);
+    console.error('BenGraham strategy analysis error:', error);
     return {
       decision: 'HOLD',
-      reasoning: '分析过程中发生错误，建议持有等待更多数据。'
+      reasoning: 'An error occurred during analysis, recommend holding until more data is available.'
     };
   }
 }
 
 /**
- * 计算股票市值
+ * Calculate stock market capitalization
  */
 function calculateMarketCap(stockData: StockData): number {
-  // 如果有股票价格和流通股数，计算市值
+  // If stock price and outstanding shares are available, calculate market cap
   const price = stockData.price?.regularMarketPrice || 0;
   
-  // 类型转换以访问可能缺失的属性
+  // Type conversion to access potentially missing properties
   interface ExtendedKeyStatistics {
     sharesOutstanding?: { raw?: number; fmt?: string };
   }
@@ -133,64 +129,22 @@ function calculateMarketCap(stockData: StockData): number {
 }
 
 /**
- * 从StockData中提取财务指标
+ * Extract financial metrics from StockData
  */
 function extractFinancialMetrics(stockData: StockData): FinancialLineItem {
-  // 添加额外的类型定义，以补充现有 StockData 类型中的缺失部分
-  interface ExtendedKeyStatistics {
-    forwardPE?: { raw?: number; fmt?: string };
-    priceToBook?: { raw?: number; fmt?: string };
-    trailingEPS?: { raw?: number; fmt?: string };
-    bookValue?: { raw?: number; fmt?: string };
-    sharesOutstanding?: { raw?: number; fmt?: string };
-  }
-  
-  interface ExtendedFinancialData {
-    totalCash?: { raw?: number; fmt?: string };
-    totalDebt?: { raw?: number; fmt?: string };
-    totalRevenue?: { raw?: number; fmt?: string };
-    netIncome?: { raw?: number; fmt?: string };
-    dividendRate?: { raw?: number; fmt?: string };
-  }
-  
-  interface BalanceSheetStatement {
-    totalAssets?: { raw?: number; fmt?: string };
-    totalLiab?: { raw?: number; fmt?: string };
-    totalCurrentAssets?: { raw?: number; fmt?: string };
-    totalCurrentLiabilities?: { raw?: number; fmt?: string };
-  }
-  
-  interface ExtendedQuoteSummary {
-    longName?: string;
-    defaultKeyStatistics?: ExtendedKeyStatistics;
-    financialData?: ExtendedFinancialData;
-    balanceSheetHistory?: {
-      balanceSheetStatements?: BalanceSheetStatement[];
-    };
-  }
-  
-  const quoteData = stockData.quoteSummary as unknown as ExtendedQuoteSummary || {};
-  const keyStats = quoteData.defaultKeyStatistics || {};
-  const financials = quoteData.financialData || {};
-  const balanceSheet = quoteData.balanceSheetHistory?.balanceSheetStatements?.[0] || {};
-  
   return {
-    earnings_per_share: keyStats.trailingEPS?.raw || 0,
-    book_value_per_share: keyStats.bookValue?.raw || 0,
-    total_assets: balanceSheet.totalAssets?.raw || 0,
-    total_liabilities: balanceSheet.totalLiab?.raw || 0,
-    current_assets: balanceSheet.totalCurrentAssets?.raw || 0,
-    current_liabilities: balanceSheet.totalCurrentLiabilities?.raw || 0,
-    outstanding_shares: keyStats.sharesOutstanding?.raw || 0,
-    // 从股票数据中提取其他可能有用的指标
-    revenue: financials.totalRevenue?.raw || 0,
-    net_income: financials.netIncome?.raw || 0,
-    dividends_and_other_cash_distributions: financials.dividendRate?.raw || 0
+    earnings_per_share: stockData.earningsPerShare ?? 0,
+    book_value_per_share: stockData.bookValuePerShare ?? 0,
+    outstanding_shares: stockData.sharesOutstanding ?? 0,
+    current_ratio: stockData.currentRatio ?? 0,
+    debt_to_equity: stockData.debtToEquity ?? 0,
+    market_cap: stockData.marketCap ?? 0,
+    // If you need more fields, add them here and ensure they are provided at the top level
   };
 }
 
 /**
- * 分析盈利稳定性
+ * Analyze earnings stability
  */
 function analyzeEarningsStability(metrics: FinancialLineItem): GrahamAnalysisResult {
   let score = 0;
@@ -198,149 +152,101 @@ function analyzeEarningsStability(metrics: FinancialLineItem): GrahamAnalysisRes
   
   const eps = metrics.earnings_per_share || 0;
   
-  // 基本EPS检查 - 在有限的数据情况下简化处理
+  // Basic EPS check - simplified handling with limited data
   if (eps > 0) {
     score += 3;
-    details.push(`每股收益为正 (${eps.toFixed(2)})，符合Graham标准。`);
+    details.push(`Positive earnings per share (${eps.toFixed(2)}), meets Graham's criteria.`);
   } else {
-    details.push(`当前每股收益不为正 (${eps.toFixed(2)})，不符合Graham的盈利稳定性要求。`);
+    details.push(`Current earnings per share is not positive (${eps.toFixed(2)}), does not meet Graham's earnings stability requirements.`);
   }
   
-  // 注意：理想情况下，我们应该有多年的EPS数据来分析趋势
-  // 如果API提供了历史数据，可以进一步完善这一部分
+  // Note: Ideally, we should have multiple years of EPS data to analyze trends
+  // If the API provides historical data, this section can be further refined
   
   return { score, details: details.join(' ') };
 }
 
 /**
- * 分析财务实力
+ * Analyze financial strength
  */
 function analyzeFinancialStrength(metrics: FinancialLineItem): GrahamAnalysisResult {
   let score = 0;
   const details: string[] = [];
-  
-  // 1. 流动比率分析
-  const currentRatio = metrics.current_assets && metrics.current_liabilities && metrics.current_liabilities > 0
-    ? metrics.current_assets / metrics.current_liabilities
-    : 0;
-    
+
+  // Use current_ratio directly
+  const currentRatio = metrics.current_ratio || 0;
   if (currentRatio >= 2.0) {
     score += 2;
-    details.push(`流动比率 = ${currentRatio.toFixed(2)} (>=2.0: 良好)。`);
+    details.push(`Current ratio = ${currentRatio.toFixed(2)} (>=2.0: Good).`);
   } else if (currentRatio >= 1.5) {
     score += 1;
-    details.push(`流动比率 = ${currentRatio.toFixed(2)} (中等强度)。`);
+    details.push(`Current ratio = ${currentRatio.toFixed(2)} (Medium strength).`);
   } else if (currentRatio > 0) {
-    details.push(`流动比率 = ${currentRatio.toFixed(2)} (<1.5: 流动性较弱)。`);
+    details.push(`Current ratio = ${currentRatio.toFixed(2)} (<1.5: Weaker liquidity).`);
   } else {
-    details.push(`无法计算流动比率 (缺少或零流动负债)。`);
+    details.push(`Current ratio data is missing or zero.`);
   }
-  
-  // 2. 债务vs资产分析
-  const totalAssets = metrics.total_assets || 0;
-  const totalLiabilities = metrics.total_liabilities || 0;
-  
-  if (totalAssets > 0) {
-    const debtRatio = totalLiabilities / totalAssets;
-    if (debtRatio < 0.5) {
-      score += 2;
-      details.push(`债务比率 = ${debtRatio.toFixed(2)}，低于0.50 (保守)。`);
-    } else if (debtRatio < 0.8) {
-      score += 1;
-      details.push(`债务比率 = ${debtRatio.toFixed(2)}，略高但可接受。`);
-    } else {
-      details.push(`债务比率 = ${debtRatio.toFixed(2)}，按Graham标准相当高。`);
-    }
+
+  // Use debt_to_equity directly
+  const debtToEquity = metrics.debt_to_equity || 0;
+  if (debtToEquity > 0) {
+    details.push(`Debt to equity ratio = ${debtToEquity.toFixed(2)}.`);
   } else {
-    details.push(`无法计算债务比率 (缺少总资产数据)。`);
+    details.push(`Debt to equity data is missing or zero.`);
   }
-  
-  // 3. 股息记录
-  const dividendRate = metrics.dividends_and_other_cash_distributions || 0;
-  if (dividendRate > 0) {
-    score += 1;
-    details.push(`公司有支付股息 (${dividendRate.toFixed(2)})，增加了安全性。`);
-  } else {
-    details.push(`公司无股息支付或数据不可用。`);
-  }
-  
+
   return { score, details: details.join(' ') };
 }
 
 /**
- * 分析Graham价值评估
+ * Analyze Graham valuation
  */
 function analyzeValuationGraham(metrics: FinancialLineItem, marketCap: number): GrahamAnalysisResult {
   let score = 0;
   const details: string[] = [];
-  
+
   if (!marketCap || marketCap <= 0) {
-    return { score: 0, details: "缺少市值数据，无法进行价值评估" };
+    return { score: 0, details: "Missing market capitalization data, unable to perform valuation analysis" };
   }
-  
-  const currentAssets = metrics.current_assets || 0;
-  const totalLiabilities = metrics.total_liabilities || 0;
+
   const bookValuePS = metrics.book_value_per_share || 0;
   const eps = metrics.earnings_per_share || 0;
   const sharesOutstanding = metrics.outstanding_shares || 0;
-  
-  // 1. Net-Net 检查
-  const netCurrentAssetValue = currentAssets - totalLiabilities;
-  
-  if (netCurrentAssetValue > 0 && sharesOutstanding > 0) {
-    const netCurrentAssetValuePerShare = netCurrentAssetValue / sharesOutstanding;
-    const pricePerShare = sharesOutstanding > 0 ? marketCap / sharesOutstanding : 0;
-    
-    details.push(`净流动资产价值 = ${netCurrentAssetValue.toLocaleString()} 元`);
-    details.push(`每股净流动资产价值 = ${netCurrentAssetValuePerShare.toFixed(2)} 元`);
-    details.push(`每股价格 = ${pricePerShare.toFixed(2)} 元`);
-    
-    if (netCurrentAssetValue > marketCap) {
-      score += 4;
-      details.push(`Net-Net: 净流动资产价值 > 市值 (classic Graham deep value)。`);
-    } else if (netCurrentAssetValuePerShare >= (pricePerShare * 0.67)) {
-      score += 2;
-      details.push(`每股净流动资产价值 >= 每股价格的2/3 (中等 net-net 折扣)。`);
-    }
-  } else {
-    details.push(`净流动资产价值未超过市值或数据不足，无法进行 net-net 分析。`);
-  }
-  
-  // 2. Graham数字
+
+  // Graham number
   let grahamNumber = null;
   if (eps > 0 && bookValuePS > 0) {
     grahamNumber = Math.sqrt(22.5 * eps * bookValuePS);
-    details.push(`Graham数字 = ${grahamNumber.toFixed(2)} 元`);
+    details.push(`Graham number = ${grahamNumber.toFixed(2)}`);
   } else {
-    details.push(`无法计算Graham数字 (EPS或每股账面价值缺失/<=0)。`);
+    details.push(`Unable to calculate Graham number (EPS or book value per share missing/<=0).`);
   }
-  
-  // 3. 相对于Graham数字的安全边际
+
+  // Margin of safety relative to Graham number
   if (grahamNumber && sharesOutstanding > 0) {
     const currentPrice = marketCap / sharesOutstanding;
     if (currentPrice > 0) {
       const marginOfSafety = (grahamNumber - currentPrice) / currentPrice;
-      details.push(`安全边际 (Graham数字) = ${(marginOfSafety * 100).toFixed(2)}%`);
-      
+      details.push(`Margin of safety (Graham number) = ${(marginOfSafety * 100).toFixed(2)}%`);
       if (marginOfSafety > 0.5) {
         score += 3;
-        details.push(`价格远低于Graham数字 (>=50% 边际)。`);
+        details.push(`Stock price significantly below Graham number (>=50% margin).`);
       } else if (marginOfSafety > 0.2) {
         score += 1;
-        details.push(`相对于Graham数字有一定的安全边际。`);
+        details.push(`Stock price slightly below Graham number, acceptable margin.`);
       } else {
-        details.push(`价格接近或高于Graham数字，安全边际较低。`);
+        details.push(`Stock price near or above Graham number, low margin of safety.`);
       }
     } else {
-      details.push(`当前价格为零或无效；无法计算安全边际。`);
+      details.push(`Current price is zero or invalid; unable to calculate margin of safety.`);
     }
   }
-  
+
   return { score, details: details.join(' ') };
 }
 
 /**
- * 将分数映射到投资信号
+ * Map score to investment signal
  */
 function mapScoreToSignal(totalScore: number, maxPossibleScore: number): GrahamSignalType {
   if (totalScore >= 0.7 * maxPossibleScore) {
@@ -353,11 +259,12 @@ function mapScoreToSignal(totalScore: number, maxPossibleScore: number): GrahamS
 }
 
 /**
- * 将Graham信号映射到决策
+ * Map Graham signal to decision
  */
 function mapGrahamSignalToDecision(signal: BenGrahamSignal): {
   decision: SignalType;
   reasoning: string;
+  confidence: number;
 } {
   const decisionMap: Record<GrahamSignalType, SignalType> = {
     "bullish": "BUY",
@@ -367,16 +274,19 @@ function mapGrahamSignalToDecision(signal: BenGrahamSignal): {
   
   return {
     decision: decisionMap[signal.signal],
-    reasoning: `${signal.reasoning} (置信度: ${signal.confidence.toFixed(0)}%)`
+    reasoning: signal.reasoning,
+    confidence: signal.confidence
   };
 }
 
 /**
- * 生成基本决策，不使用GPT
+ * Generate basic decision, not using GPT
  */
 function generateBasicDecision(analysisData: any): {
   decision: SignalType;
   reasoning: string;
+  confidence: number;
+  detailedAnalysis: string;
 } {
   const decisionMap: Record<GrahamSignalType, SignalType> = {
     "bullish": "BUY",
@@ -385,20 +295,43 @@ function generateBasicDecision(analysisData: any): {
   };
   
   const decision = decisionMap[analysisData.signal as GrahamSignalType];
+  const confidence = Math.round((analysisData.score / analysisData.max_score) * 100);
   
-  // 构建推理文本
-  let reasoning = `Graham分析得分: ${analysisData.score}/${analysisData.max_score}。 `;
-  
-  // 添加各个分析的详情
-  reasoning += `盈利稳定性: ${analysisData.earnings_analysis.details} `;
-  reasoning += `财务实力: ${analysisData.strength_analysis.details} `;
-  reasoning += `价值评估: ${analysisData.valuation_analysis.details}`;
-  
-  return { decision, reasoning };
+  let reasoning = `Graham analysis score: ${analysisData.score}/${analysisData.max_score}. `;
+  reasoning += `Earnings stability: ${analysisData.earnings_analysis.details} `;
+  reasoning += `Financial strength: ${analysisData.strength_analysis.details} `;
+  reasoning += `Valuation: ${analysisData.valuation_analysis.details}`;
+
+  const detailedAnalysis = `
+## Graham Value Investment Analysis Details
+
+### Basic Score
+- Total Score: ${analysisData.score}/${analysisData.max_score}
+- Confidence: ${confidence}%
+- Final Signal: ${analysisData.signal}
+
+### Earnings Stability Analysis
+${analysisData.earnings_analysis.details}
+
+### Financial Strength Analysis
+${analysisData.strength_analysis.details}
+
+### Valuation
+${analysisData.valuation_analysis.details}
+
+### Summary
+Based on Graham's value investing principles, the current analysis suggests ${decision}.`;
+
+  return { 
+    decision, 
+    reasoning, 
+    confidence, 
+    detailedAnalysis 
+  };
 }
 
 /**
- * 使用OpenAI生成Graham风格的输出
+ * Use OpenAI to generate Graham-style output
  */
 async function generateGrahamOutput(
   ticker: string,
@@ -406,118 +339,125 @@ async function generateGrahamOutput(
   apiKey: string
 ): Promise<BenGrahamSignal> {
   try {
-    // 初始化OpenAI客户端
-    // 处理可能包含的换行符
+    // Initialize OpenAI client
+    // Handle possible line breaks
     apiKey = apiKey.replace(/\r?\n/g, '');
     
-    console.log(`generateGrahamOutput: 使用传入的API密钥, 长度: ${apiKey.length}`);
-    console.log(`OpenAI API密钥前10个字符: ${apiKey.substring(0, 10)}...`);
+    console.log(`generateGrahamOutput: Using provided API key, length: ${apiKey.length}`);
+    console.log(`OpenAI API key first 10 characters: ${apiKey.substring(0, 10)}...`);
     
-    if (!apiKey || apiKey === '您的OpenAI密钥') {
-      console.error('OpenAI API密钥未设置或是占位符');
-      throw new Error('OpenAI API密钥未正确配置');
+    if (!apiKey || apiKey === 'Your OpenAI key') {
+      console.error('OpenAI API key not set or placeholder');
+      throw new Error('OpenAI API key not correctly configured');
     }
     
-    // 硬编码测试 - 仅用于调试，请勿在生产环境中使用
+    // Hardcoded test - only for debugging, do not use in production
     const openai = new OpenAI({
       apiKey: apiKey
     });
     
-    console.log('OpenAI客户端已初始化，准备发送请求');
+    console.log('OpenAI client initialized, preparing to send request');
     
-    // 准备系统提示
-    const systemPrompt = `您是Benjamin Graham AI代理，使用他的原则进行投资决策：
-    1. 坚持安全边际，买入低于内在价值的股票（使用Graham数字、net-net等）。
-    2. 强调公司的财务实力（低杠杆、充足的流动资产）。
-    3. 偏好多年稳定的收益。
-    4. 考虑股息记录以增加安全性。
-    5. 避免投机或高增长假设；专注于已证实的指标。
+    // Prepare system prompt
+    const systemPrompt = `You are Benjamin Graham AI agent, using his principles for investment decisions:
+    1. Stick to margin of safety, buy stocks below intrinsic value (using Graham number, net-net, etc.).
+    2. Emphasize company's financial strength (low leverage, ample current assets).
+    3. Prefer stable long-term earnings.
+    4. Consider dividend record for safety.
+    5. Avoid speculation or high growth assumptions; focus on proven indicators.
     
-    在提供您的推理时，请通过以下方式进行彻底而具体的分析：
-    1. 解释最影响您决策的关键估值指标（Graham数字、NCAV、P/E等）
-    2. 突出具体的财务实力指标（流动比率、债务水平等）
-    3. 参考随时间推移的收益稳定性或不稳定性
-    4. 提供精确数字的定量证据
-    5. 将当前指标与Graham的特定阈值进行比较（例如，"2.5的流动比率超过Graham的2.0的最低要求"）
-    6. 在您的解释中使用Benjamin Graham的保守、分析性的语音和风格
+    When providing your reasoning, please conduct thorough and specific analysis in the following ways:
+    1. Explain the key valuation indicators that most influence your decision (Graham number, NCAV, P/E, etc.)
+    2. Highlight specific financial strength indicators (current ratio, debt level, etc.)
+    3. Refer to earnings stability or instability over time
+    4. Provide quantitative evidence with precise numbers
+    5. Compare current indicators to Graham's thresholds (e.g., "Current ratio 2.5 exceeds Graham's minimum 2.0")
+    6. Use Benjamin Graham's conservative, analytical tone and style in your explanation
     
-    例如，如果看涨："该股票以35%的折扣交易于净流动资产价值，提供充足的安全边际。2.5的流动比率和0.3的债务权益比表明财务状况强劲..."
-    例如，如果看跌："尽管收益一致，当前50美元的价格超过了我们计算的35美元的Graham数字，没有提供安全边际。此外，仅为1.2的流动比率低于Graham首选的2.0阈值..."
+    For example, if bullish: "This stock trades at a 35% discount to net current asset value, providing a wide margin of safety. A current ratio of 2.5 and debt-to-equity of 0.3 indicate strong financial health..."
+    For example, if bearish: "Despite consistent earnings, the current price of $50 exceeds our calculated Graham number of $35, offering no margin of safety. In addition, a current ratio of only 1.2 is below Graham's preferred 2.0 threshold..."
     
-    返回理性建议：看涨、看跌或中性，以及置信度水平（0-100）和彻底的推理。`;
+    Return a rational recommendation: bullish, bearish, or neutral, with a confidence level (0-100) and thorough reasoning.
     
-    // 准备用户提示
-    const userPrompt = `基于以下分析，创建Graham风格的投资信号：
+    First provide a detailed analysis process explaining your thinking, then give the final decision.
+    
+    If some financial data is missing, please use your own knowledge, industry averages, or reasonable assumptions to supplement the analysis. Do not simply state that data is missing; always provide a reasoned investment opinion based on all available and inferable information.`;
+    
+    // Prepare user prompt
+    const userPrompt = `Based on the following analysis, create a Graham-style investment signal:
 
-    ${ticker}的分析数据：
+    Analysis data for ${ticker}:
     ${JSON.stringify(analysisData, null, 2)}
 
-    返回准确JSON格式：
+    Please first provide a detailed analysis process, then return accurate JSON format:
     {
-      "signal": "bullish" 或 "bearish" 或 "neutral",
+      "signal": "bullish" | "bearish" | "neutral",
       "confidence": float (0-100),
-      "reasoning": "string"
+      "reasoning": "string",
+      "detailedAnalysis": "detailed thought process and analysis"
     }`;
     
-    // 调用OpenAI API
+    // Log prompts for debugging
+    console.log('[BenGraham] systemPrompt:', systemPrompt);
+    console.log('[BenGraham] userPrompt:', userPrompt);
+    // Call OpenAI API
     try {
-      console.log('开始调用OpenAI API...');
+      console.log('[BenGraham] About to call OpenAI API with prompt:', userPrompt);
       const response = await openai.chat.completions.create({
-        model: "gpt-3.5-turbo", // 可以根据需要更改为更新的模型
+        model: "gpt-3.5-turbo", // Can be changed to newer model if needed
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt }
         ],
-        temperature: 0.2, // 低温度以获得更一致的结果
+        temperature: 0.2, // Low temperature for more consistent results
         max_tokens: 1000
       });
+      console.log('[BenGraham] OpenAI API call succeeded, response:', JSON.stringify(response));
       
-      console.log('OpenAI API调用成功，状态码:', response.id ? 'OK' : 'ERROR');
-      
-      // 解析响应
+      // Parse response
       const content = response.choices[0].message.content;
       if (!content) {
-        console.error('OpenAI返回了空响应');
-        throw new Error('OpenAI返回了空响应');
+        console.error('OpenAI returned empty response');
+        throw new Error('OpenAI returned empty response');
       }
       
-      console.log('OpenAI 响应内容:', content.substring(0, 100) + '...');
+      console.log('OpenAI response content:', content.substring(0, 100) + '...');
       
-      // 尝试从文本中提取JSON
+      // Try to extract JSON from text
       try {
-        // 使用正则表达式查找JSON对象
+        // Use regular expression to find JSON object
         const jsonMatch = content.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
           const jsonStr = jsonMatch[0];
           const result = JSON.parse(jsonStr) as BenGrahamSignal;
           return result;
         }
-        throw new Error('无法从响应中提取JSON');
+        throw new Error('Unable to extract JSON from response');
       } catch (error) {
-        console.error('解析OpenAI响应时出错:', error);
-        // 返回默认值
+        console.error('Error parsing OpenAI response:', error);
+        // Return default value
         return {
           signal: "neutral",
           confidence: 0,
-          reasoning: "分析生成错误；默认为中性。"
+          reasoning: "Analysis generation error; defaulting to neutral."
         };
       }
     } catch (error) {
-      console.error('调用OpenAI API时出错:', error);
-      // 返回默认值
+      console.error('Error calling OpenAI API:', error);
+      // Return default value
       return {
         signal: "neutral",
         confidence: 0,
-        reasoning: "调用AI分析服务时出错；默认为中性。"
+        reasoning: "Error calling AI analysis service; defaulting to neutral."
       };
     }
   } catch (error) {
-    console.error('调用OpenAI API时出错:', error);
-    // 返回默认值
+    console.error('Error calling OpenAI API:', error);
+    // Return default value
     return {
       signal: "neutral",
       confidence: 0,
-      reasoning: "调用AI分析服务时出错；默认为中性。"
+      reasoning: "Error calling AI analysis service; defaulting to neutral."
     };
   }
 } 

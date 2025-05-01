@@ -23,14 +23,22 @@ export async function GET(
       modules: ['price', 'defaultKeyStatistics', 'financialData', 'balanceSheetHistory']
     });
 
-    // 3. 整合数据为StockData格式
+    // 3. 构建返回数据（扁平化关键财务字段）
     const stockData = {
-      symbol,
+      symbol: symbol,
       price: quote,
+      marketCap: quote.marketCap || quoteSummary.price?.marketCap || null,
+      earningsPerShare: quoteSummary.defaultKeyStatistics?.trailingEps || null,
+      currentRatio: quoteSummary.financialData?.currentRatio || null,
+      debtToEquity: quoteSummary.financialData?.debtToEquity || null,
+      bookValuePerShare: quoteSummary.defaultKeyStatistics?.bookValue || null,
+      sharesOutstanding: quoteSummary.defaultKeyStatistics?.sharesOutstanding || null,
       quoteSummary: quoteSummary
     };
 
-    console.log(`成功获取${symbol}的数据`);
+    // Log processed stockData
+    console.log('[API Route /api/stocks/[symbol]] Processed stockData:', JSON.stringify(stockData, null, 2));
+
     return NextResponse.json(stockData);
 
   } catch (error: any) {

@@ -1,30 +1,30 @@
 import { createClient } from '@supabase/supabase-js';
 import { Database } from '@/types/database.types';
 
-// 确保环境变量存在
-// 注意：Next.js 15+中，环境变量可能在客户端组件和服务器组件中访问方式不同
-// 默认值用于开发环境或测试
+// Ensure environment variables exist
+// Note: In Next.js 15+, environment variables may be accessed differently in client and server components
+// Default values are provided for development or testing
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://ycnvrgvzmpkiqhnkfkdz.supabase.co';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InljbnZyZ3Z6bXBraXFobmtma2R6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU4OTA2MjEsImV4cCI6MjA2MTQ2NjYyMX0.hX7DNpbhVh1q9_MAuF_tkXC3gk1QnW14GzXMIyQFW4A';
 
-// 验证环境变量 - 有默认值，所以不会抛出错误
+// Validate environment variables - won't throw errors since we have defaults
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn('警告：缺少Supabase环境变量。使用默认值，这可能不是您想要的。');
+  console.warn('Warning: Missing Supabase environment variables. Using defaults, which may not be what you want.');
 }
 
-// 创建Supabase客户端
+// Create Supabase client
 export const supabase = createClient<Database>(
   supabaseUrl,
   supabaseAnonKey
 );
 
-// 服务端Supabase客户端创建函数（带服务角色密钥）
+// Server-side Supabase client creation function (with service role key)
 export const createServerSupabaseClient = () => {
   const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InljbnZyZ3Z6bXBraXFobmtma2R6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NTg5MDYyMSwiZXhwIjoyMDYxNDY2NjIxfQ.Ow1H-0LC-SqSpZVzkC8NTwdTZKs_3mL8vTVdF5MuTXE';
   
   if (!supabaseServiceRoleKey) {
-    console.warn('警告：缺少Supabase服务角色密钥。某些服务器端功能可能不可用。');
-    // 返回使用匿名密钥的客户端，而不是抛出错误
+    console.warn('Warning: Missing Supabase service role key. Some server-side features may be unavailable.');
+    // Return client with anonymous key instead of throwing error
     return createClient<Database>(
       supabaseUrl,
       supabaseAnonKey,
@@ -50,9 +50,9 @@ export const createServerSupabaseClient = () => {
 };
 
 /**
- * 用户注册
- * @param email 用户邮箱
- * @param password 密码
+ * User registration
+ * @param email User email
+ * @param password Password
  */
 export async function signUp(email: string, password: string) {
   try {
@@ -67,15 +67,15 @@ export async function signUp(email: string, password: string) {
     
     return data;
   } catch (error) {
-    console.error('注册失败:', error);
+    console.error('Registration failed:', error);
     throw error;
   }
 }
 
 /**
- * 用户登录
- * @param email 用户邮箱
- * @param password 密码
+ * User login
+ * @param email User email
+ * @param password Password
  */
 export async function signIn(email: string, password: string) {
   try {
@@ -90,13 +90,13 @@ export async function signIn(email: string, password: string) {
     
     return data;
   } catch (error) {
-    console.error('登录失败:', error);
+    console.error('Login failed:', error);
     throw error;
   }
 }
 
 /**
- * 用户登出
+ * User logout
  */
 export async function signOut() {
   try {
@@ -105,27 +105,27 @@ export async function signOut() {
       throw error;
     }
   } catch (error) {
-    console.error('登出失败:', error);
+    console.error('Logout failed:', error);
     throw error;
   }
 }
 
 /**
- * 获取当前用户
+ * Get current user
  */
 export async function getCurrentUser() {
   try {
     const { data: { session } } = await supabase.auth.getSession();
     return session?.user;
   } catch (error) {
-    console.error('获取当前用户失败:', error);
+    console.error('Failed to get current user:', error);
     return null;
   }
 }
 
 /**
- * 获取用户订阅状态
- * @param userId 用户ID
+ * Get user subscription status
+ * @param userId User ID
  */
 export async function getUserSubscription(userId: string) {
   try {
@@ -136,7 +136,7 @@ export async function getUserSubscription(userId: string) {
       .single();
     
     if (error) {
-      // 如果没有找到记录，默认为免费用户
+      // If no record is found, default to free user
       if (error.code === 'PGRST116') {
         return { subscription_status: 'free' };
       }
@@ -145,7 +145,7 @@ export async function getUserSubscription(userId: string) {
     
     return data;
   } catch (error) {
-    console.error('获取用户订阅状态失败:', error);
+    console.error('Failed to get user subscription status:', error);
     return { subscription_status: 'free' };
   }
 } 

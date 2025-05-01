@@ -9,7 +9,7 @@ interface SubscriptionBannerProps {
 
 export default function SubscriptionBanner({ subscriptionStatus }: SubscriptionBannerProps) {
   if (subscriptionStatus === 'premium') {
-    return null; // 高级订阅用户不显示横幅
+    return null; // Premium subscribers don't see the banner
   }
   
   return (
@@ -18,13 +18,13 @@ export default function SubscriptionBanner({ subscriptionStatus }: SubscriptionB
         <div className="mb-4 md:mb-0">
           <h3 className="text-xl font-bold mb-2">
             {subscriptionStatus === 'basic' 
-              ? '升级至高级订阅，解锁更多投资洞见' 
-              : '开始您的AI投资之旅'}
+              ? 'Upgrade to Premium to Unlock More Investment Insights' 
+              : 'Start Your AI Investment Journey'}
           </h3>
           <p className="text-blue-200">
             {subscriptionStatus === 'basic'
-              ? '专业版提供更广泛的股票池、高级技术分析和更多投资大师智能建议。'
-              : '订阅我们的服务，获取来自顶级投资大师的AI智能交易建议。'}
+              ? 'Premium offers a wider stock selection, advanced technical analysis, and more intelligent recommendations from investment masters.'
+              : 'Subscribe to our service to get AI-powered trading recommendations from top investment masters.'}
           </p>
         </div>
         <div className="flex space-x-2">
@@ -32,12 +32,12 @@ export default function SubscriptionBanner({ subscriptionStatus }: SubscriptionB
             <>
               <Link href="/pricing">
                 <Button variant="outline" className="bg-transparent text-white border-white hover:bg-blue-900">
-                  查看价格
+                  View Pricing
                 </Button>
               </Link>
               <Link href="/login">
                 <Button className="bg-white text-blue-900 hover:bg-blue-100">
-                  立即订阅
+                  Subscribe Now
                 </Button>
               </Link>
             </>
@@ -46,7 +46,7 @@ export default function SubscriptionBanner({ subscriptionStatus }: SubscriptionB
           {subscriptionStatus === 'basic' && (
             <Link href="/dashboard">
               <Button className="bg-white text-blue-900 hover:bg-blue-100">
-                升级订阅
+                Upgrade Subscription
               </Button>
             </Link>
           )}

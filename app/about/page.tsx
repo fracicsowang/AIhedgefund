@@ -1,6 +1,7 @@
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import Image from 'next/image';
 
 export default function AboutPage() {
   return (
@@ -8,139 +9,145 @@ export default function AboutPage() {
       <Navbar user={null} />
       
       <main className="flex-grow">
-        {/* 关于我们标题部分 */}
+        {/* About Us Hero Section */}
         <section className="bg-blue-900 text-white py-16">
           <div className="container mx-auto px-4">
             <div className="max-w-3xl mx-auto text-center">
-              <h1 className="text-4xl font-bold mb-4">关于我们</h1>
+              <h1 className="text-4xl font-bold mb-4">About Us</h1>
               <p className="text-xl">
-                AI Hedge Fund是您的智能投资助手，融合多位投资大师的策略，为您提供更明智的投资决策。
+                AI Hedge Fund is your intelligent investment assistant, combining strategies from multiple investment masters to provide you with smarter investment decisions.
               </p>
             </div>
           </div>
         </section>
         
-        {/* 我们的使命 */}
+        {/* Our Mission */}
         <section className="py-16">
           <div className="container mx-auto px-4">
             <div className="max-w-3xl mx-auto">
-              <h2 className="text-3xl font-bold mb-6 text-center">我们的使命</h2>
+              <h2 className="text-3xl font-bold mb-6 text-center">Our Mission</h2>
               <p className="text-lg text-gray-700 mb-6">
-                我们的使命是通过人工智能技术，将投资领域最优秀的思想和策略带给每一位投资者，无论他们的经验水平或资金规模如何。
+                Our mission is to leverage artificial intelligence to bring the best investment thinking and strategies to every investor, regardless of their experience level or financial resources.
               </p>
               <p className="text-lg text-gray-700 mb-6">
-                传统上，获取高质量的投资建议需要支付高昂的咨询费或自行钻研复杂的投资理论。AI Hedge Fund改变了这一点 - 我们相信每个人都应该有机会接触到优质的投资智慧。
+                Traditionally, obtaining high-quality investment advice required paying expensive consulting fees or studying complex investment theories. AI Hedge Fund changes that - we believe everyone should have access to quality investment wisdom.
               </p>
               <p className="text-lg text-gray-700">
-                通过结合多位投资大师的策略和最先进的AI技术，我们提供全面、平衡的投资分析，帮助用户在复杂多变的市场中做出更加明智的决策。
+                By combining strategies from multiple investment masters with cutting-edge AI technology, we provide comprehensive, balanced investment analysis to help users make smarter decisions in complex and volatile markets.
               </p>
             </div>
           </div>
         </section>
         
-        {/* 我们的团队 */}
+        {/* Our Team */}
         <section className="py-16 bg-gray-50">
           <div className="container mx-auto px-4">
-            <h2 className="text-3xl font-bold mb-12 text-center">我们的团队</h2>
+            <h2 className="text-3xl font-bold mb-12 text-center">Our Team</h2>
             
             <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-              {/* 团队成员 1 */}
+              {/* Team Member 1 */}
               <div className="bg-white rounded-lg shadow-md p-6 text-center">
-                <div className="w-24 h-24 rounded-full bg-gray-300 mx-auto mb-4 overflow-hidden">
-                  <div className="w-full h-full flex items-center justify-center text-4xl">👨‍💼</div>
+                <div className="w-24 h-24 rounded-full bg-blue-100 mx-auto mb-4 overflow-hidden flex items-center justify-center">
+                  <svg className="w-16 h-16 text-blue-900" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                  </svg>
                 </div>
-                <h3 className="text-xl font-bold mb-1">张明</h3>
-                <p className="text-blue-900 mb-3">首席执行官</p>
+                <h3 className="text-xl font-bold mb-1">Michael Johnson</h3>
+                <p className="text-blue-900 mb-3">Chief Executive Officer</p>
                 <p className="text-gray-600 text-sm">
-                  前华尔街对冲基金经理，拥有15年金融市场经验，专注于将AI技术应用于投资决策。
+                  Former Wall Street hedge fund manager with 15 years of experience in financial markets, focused on applying AI technology to investment decisions.
                 </p>
               </div>
               
-              {/* 团队成员 2 */}
+              {/* Team Member 2 */}
               <div className="bg-white rounded-lg shadow-md p-6 text-center">
-                <div className="w-24 h-24 rounded-full bg-gray-300 mx-auto mb-4 overflow-hidden">
-                  <div className="w-full h-full flex items-center justify-center text-4xl">👩‍💻</div>
+                <div className="w-24 h-24 rounded-full bg-blue-100 mx-auto mb-4 overflow-hidden flex items-center justify-center">
+                  <svg className="w-16 h-16 text-blue-900" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                  </svg>
                 </div>
-                <h3 className="text-xl font-bold mb-1">李芳</h3>
-                <p className="text-blue-900 mb-3">首席技术官</p>
+                <h3 className="text-xl font-bold mb-1">Sarah Chen</h3>
+                <p className="text-blue-900 mb-3">Chief Technology Officer</p>
                 <p className="text-gray-600 text-sm">
-                  人工智能专家，曾在多家科技巨头担任要职，负责设计和优化我们的AI模型和算法。
+                  AI expert who has held key positions at several tech giants, responsible for designing and optimizing our AI models and algorithms.
                 </p>
               </div>
               
-              {/* 团队成员 3 */}
+              {/* Team Member 3 */}
               <div className="bg-white rounded-lg shadow-md p-6 text-center">
-                <div className="w-24 h-24 rounded-full bg-gray-300 mx-auto mb-4 overflow-hidden">
-                  <div className="w-full h-full flex items-center justify-center text-4xl">👨‍🔬</div>
+                <div className="w-24 h-24 rounded-full bg-blue-100 mx-auto mb-4 overflow-hidden flex items-center justify-center">
+                  <svg className="w-16 h-16 text-blue-900" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                  </svg>
                 </div>
-                <h3 className="text-xl font-bold mb-1">王浩</h3>
-                <p className="text-blue-900 mb-3">首席研究员</p>
+                <h3 className="text-xl font-bold mb-1">David Reynolds</h3>
+                <p className="text-blue-900 mb-3">Chief Research Officer</p>
                 <p className="text-gray-600 text-sm">
-                  金融博士，专注于量化投资研究，负责将投资大师的策略转化为可量化的算法模型。
+                  Finance PhD focused on quantitative investment research, responsible for transforming investment master strategies into quantifiable algorithmic models.
                 </p>
               </div>
             </div>
           </div>
         </section>
         
-        {/* 投资大师 */}
+        {/* Investment Masters */}
         <section className="py-16">
           <div className="container mx-auto px-4">
-            <h2 className="text-3xl font-bold mb-12 text-center">我们模拟的投资大师</h2>
+            <h2 className="text-3xl font-bold mb-12 text-center">Investment Masters We Model</h2>
             
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
               <div className="border border-gray-200 rounded-lg p-4">
-                <h3 className="text-xl font-bold mb-2">沃伦·巴菲特</h3>
+                <h3 className="text-xl font-bold mb-2">Warren Buffett</h3>
                 <p className="text-gray-600 text-sm">
-                  价值投资的代表人物，专注于寻找具有持久竞争优势的优质企业，注重长期持有。
+                  Icon of value investing who focuses on finding quality companies with enduring competitive advantages and emphasizes long-term holding.
                 </p>
               </div>
               
               <div className="border border-gray-200 rounded-lg p-4">
-                <h3 className="text-xl font-bold mb-2">本杰明·格雷厄姆</h3>
+                <h3 className="text-xl font-bold mb-2">Benjamin Graham</h3>
                 <p className="text-gray-600 text-sm">
-                  价值投资之父，强调安全边际，寻找被低估的股票，注重公司内在价值。
+                  Father of value investing who emphasizes margin of safety, seeks undervalued stocks, and focuses on a company's intrinsic value.
                 </p>
               </div>
               
               <div className="border border-gray-200 rounded-lg p-4">
-                <h3 className="text-xl font-bold mb-2">彼得·林奇</h3>
+                <h3 className="text-xl font-bold mb-2">Peter Lynch</h3>
                 <p className="text-gray-600 text-sm">
-                  成长型投资专家，偏好投资于能够持续增长的公司，强调实地调研和对行业的深入了解。
+                  Growth investment expert who prefers investing in companies with sustainable growth, emphasizing field research and deep industry understanding.
                 </p>
               </div>
               
               <div className="border border-gray-200 rounded-lg p-4">
-                <h3 className="text-xl font-bold mb-2">查理·芒格</h3>
+                <h3 className="text-xl font-bold mb-2">Charlie Munger</h3>
                 <p className="text-gray-600 text-sm">
-                  多元思维模型的倡导者，注重质量而非数量，寻找具有经济护城河的企业。
+                  Advocate of multidisciplinary thinking models who emphasizes quality over quantity and seeks businesses with economic moats.
                 </p>
               </div>
               
               <div className="border border-gray-200 rounded-lg p-4">
-                <h3 className="text-xl font-bold mb-2">乔治·索罗斯</h3>
+                <h3 className="text-xl font-bold mb-2">George Soros</h3>
                 <p className="text-gray-600 text-sm">
-                  全球宏观投资者，擅长识别市场趋势和拐点，强调市场反身性理论。
+                  Global macro investor skilled at identifying market trends and turning points, emphasizing market reflexivity theory.
                 </p>
               </div>
               
               <div className="border border-gray-200 rounded-lg p-4">
-                <h3 className="text-xl font-bold mb-2">杰克·博格尔</h3>
+                <h3 className="text-xl font-bold mb-2">Jack Bogle</h3>
                 <p className="text-gray-600 text-sm">
-                  指数投资的先驱，强调低成本、多样化和长期投资的重要性。
+                  Pioneer of index investing who emphasizes the importance of low costs, diversification, and long-term investing.
                 </p>
               </div>
             </div>
           </div>
         </section>
         
-        {/* 联系我们 */}
+        {/* Contact Us */}
         <section className="py-16 bg-gray-50">
           <div className="container mx-auto px-4">
             <div className="max-w-3xl mx-auto text-center">
-              <h2 className="text-3xl font-bold mb-6">联系我们</h2>
+              <h2 className="text-3xl font-bold mb-6">Contact Us</h2>
               <p className="text-lg text-gray-700 mb-8">
-                有任何问题或建议？我们很乐意听取您的意见！
+                Have any questions or suggestions? We'd love to hear from you!
               </p>
               
               <div className="flex flex-col md:flex-row justify-center gap-6 mb-8">
@@ -160,7 +167,7 @@ export default function AboutPage() {
               </div>
               
               <button className="bg-blue-900 text-white font-bold py-3 px-8 rounded-md hover:bg-blue-800 transition-colors">
-                发送消息
+                Send Message
               </button>
             </div>
           </div>

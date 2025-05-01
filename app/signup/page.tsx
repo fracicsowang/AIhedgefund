@@ -20,19 +20,19 @@ export default function SignupPage() {
     e.preventDefault();
     setError(null);
     
-    // 验证表单
+    // Validate form
     if (!email || !password || !confirmPassword) {
-      setError('请填写所有字段');
+      setError('Please fill in all fields');
       return;
     }
     
     if (password !== confirmPassword) {
-      setError('两次输入的密码不匹配');
+      setError('Passwords do not match');
       return;
     }
     
     if (password.length < 8) {
-      setError('密码长度必须至少为8个字符');
+      setError('Password must be at least 8 characters');
       return;
     }
     
@@ -44,11 +44,11 @@ export default function SignupPage() {
         throw signUpError;
       }
       
-      // 注册成功，跳转到仪表盘页面或确认邮件页面
+      // Registration successful, redirect to dashboard or confirmation page
       router.push('/login?registered=true');
     } catch (err: any) {
-      console.error('注册失败:', err);
-      setError(err.message || '注册失败，请稍后重试');
+      console.error('Registration failed:', err);
+      setError(err.message || 'Registration failed, please try again later');
     } finally {
       setLoading(false);
     }
@@ -60,7 +60,7 @@ export default function SignupPage() {
       
       <main className="flex-grow">
         <div className="max-w-md mx-auto my-12 p-6 bg-white rounded-lg shadow-md">
-          <h1 className="text-2xl font-bold text-center mb-6">创建账户</h1>
+          <h1 className="text-2xl font-bold text-center mb-6">Create Account</h1>
           
           {error && (
             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4" role="alert">
@@ -71,13 +71,13 @@ export default function SignupPage() {
           <form className="space-y-4" onSubmit={handleSubmit}>
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                电子邮箱
+                Email
               </label>
               <input
                 id="email"
                 type="email"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="您的邮箱地址"
+                placeholder="Your email address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -86,13 +86,13 @@ export default function SignupPage() {
             
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                密码
+                Password
               </label>
               <input
                 id="password"
                 type="password"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="设置密码（至少8位）"
+                placeholder="Set a password (8+ characters)"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -102,13 +102,13 @@ export default function SignupPage() {
             
             <div>
               <label htmlFor="confirm-password" className="block text-sm font-medium text-gray-700 mb-1">
-                确认密码
+                Confirm Password
               </label>
               <input
                 id="confirm-password"
                 type="password"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="再次输入密码"
+                placeholder="Enter password again"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
@@ -122,29 +122,29 @@ export default function SignupPage() {
                 className="w-full bg-blue-900 text-white py-2 px-4 rounded-md hover:bg-blue-800 transition-colors disabled:opacity-50"
                 disabled={loading}
               >
-                {loading ? '注册中...' : '免费注册'}
+                {loading ? 'Signing up...' : 'Sign Up Free'}
               </button>
             </div>
           </form>
           
           <div className="mt-4 text-center text-sm text-gray-600">
             <p>
-              已有账户？
+              Already have an account?
               <Link href="/login" className="text-blue-900 hover:text-blue-700 ml-1">
-                登录
+                Login
               </Link>
             </p>
           </div>
           
           <div className="mt-6 pt-6 border-t border-gray-200 text-xs text-gray-500">
             <p>
-              注册即表示您同意我们的
+              By signing up, you agree to our
               <Link href="/terms" className="text-blue-900 hover:text-blue-700 mx-1">
-                服务条款
+                Terms of Service
               </Link>
-              和
+              and
               <Link href="/privacy" className="text-blue-900 hover:text-blue-700 mx-1">
-                隐私政策
+                Privacy Policy
               </Link>
             </p>
           </div>

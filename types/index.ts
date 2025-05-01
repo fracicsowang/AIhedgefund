@@ -9,6 +9,13 @@ export interface StockData {
     regularMarketDayLow?: number;
     regularMarketVolume?: number;
   };
+  // Ben Graham agent required top-level fields
+  earningsPerShare?: number;
+  bookValuePerShare?: number;
+  sharesOutstanding?: number;
+  currentRatio?: number;
+  debtToEquity?: number;
+  marketCap?: number;
   quoteSummary?: {
     longName?: string;
     defaultKeyStatistics?: {

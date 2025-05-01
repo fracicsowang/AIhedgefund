@@ -18,15 +18,15 @@ export default function LoginPage() {
   const searchParams = useSearchParams();
   const { signIn, user } = useAuth();
 
-  // 检查URL参数，如果用户刚刚注册，显示成功消息
+  // Check URL parameters, if user just registered, show success message
   useEffect(() => {
     const registered = searchParams.get('registered');
     if (registered === 'true') {
-      setSuccess('注册成功！请登录您的账户。');
+      setSuccess('Registration successful! Please log in to your account.');
     }
   }, [searchParams]);
 
-  // 如果用户已登录，重定向到仪表盘
+  // If user is already logged in, redirect to dashboard
   useEffect(() => {
     if (user) {
       router.push('/dashboard');
@@ -37,9 +37,9 @@ export default function LoginPage() {
     e.preventDefault();
     setError(null);
     
-    // 验证表单
+    // Validate form
     if (!email || !password) {
-      setError('请输入邮箱和密码');
+      setError('Please enter your email and password');
       return;
     }
     
@@ -51,11 +51,11 @@ export default function LoginPage() {
         throw signInError;
       }
       
-      // 登录成功，跳转到仪表盘页面
+      // Login successful, redirect to dashboard page
       router.push('/dashboard');
     } catch (err: any) {
-      console.error('登录失败:', err);
-      setError(err.message || '登录失败，请检查您的邮箱和密码');
+      console.error('Login failed:', err);
+      setError(err.message || 'Login failed, please check your email and password');
     } finally {
       setLoading(false);
     }
@@ -67,7 +67,7 @@ export default function LoginPage() {
       
       <main className="flex-grow">
         <div className="max-w-md mx-auto my-12 p-6 bg-white rounded-lg shadow-md">
-          <h1 className="text-2xl font-bold text-center mb-6">登录账户</h1>
+          <h1 className="text-2xl font-bold text-center mb-6">Login to Your Account</h1>
           
           {success && (
             <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4" role="alert">
@@ -84,13 +84,13 @@ export default function LoginPage() {
           <form className="space-y-4" onSubmit={handleSubmit}>
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                电子邮箱
+                Email
               </label>
               <input
                 id="email"
                 type="email"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="您的邮箱地址"
+                placeholder="Your email address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -99,13 +99,13 @@ export default function LoginPage() {
             
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                密码
+                Password
               </label>
               <input
                 id="password"
                 type="password"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="您的密码"
+                placeholder="Your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -122,12 +122,12 @@ export default function LoginPage() {
                   onChange={(e) => setRememberMe(e.target.checked)}
                 />
                 <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
-                  记住我
+                  Remember me
                 </label>
               </div>
               
               <Link href="/forgot-password" className="text-sm text-blue-900 hover:text-blue-700">
-                忘记密码？
+                Forgot password?
               </Link>
             </div>
             
@@ -137,16 +137,16 @@ export default function LoginPage() {
                 className="w-full bg-blue-900 text-white py-2 px-4 rounded-md hover:bg-blue-800 transition-colors disabled:opacity-50"
                 disabled={loading}
               >
-                {loading ? '登录中...' : '登录'}
+                {loading ? 'Logging in...' : 'Login'}
               </button>
             </div>
           </form>
           
           <div className="mt-4 text-center text-sm text-gray-600">
             <p>
-              还没有账户？
+              Don't have an account?
               <Link href="/signup" className="text-blue-900 hover:text-blue-700 ml-1">
-                免费注册
+                Sign up for free
               </Link>
             </p>
           </div>

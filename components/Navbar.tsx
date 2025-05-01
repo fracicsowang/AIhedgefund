@@ -27,30 +27,30 @@ const Navbar: React.FC<NavbarProps> = ({ user }) => {
             </Link>
           </div>
           
-          {/* 桌面导航 */}
+          {/* Desktop navigation */}
           <div className="hidden md:flex space-x-6">
             <Link href="/stocks" className="text-gray-700 hover:text-blue-900">
-              股票分析
+              Stock Analysis
             </Link>
             {user && (
               <Link href="/dashboard" className="text-gray-700 hover:text-blue-900">
-                我的账户
+                My Account
               </Link>
             )}
             <Link href="/pricing" className="text-gray-700 hover:text-blue-900">
-              订阅方案
+              Subscription Plans
             </Link>
             <Link href="/about" className="text-gray-700 hover:text-blue-900">
-              关于我们
+              About Us
             </Link>
           </div>
           
-          {/* 移动菜单按钮 */}
+          {/* Mobile menu button */}
           <div className="md:hidden">
             <button 
               onClick={toggleMobileMenu}
               className="text-gray-700 focus:outline-none"
-              aria-label={mobileMenuOpen ? "关闭菜单" : "打开菜单"}
+              aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
             >
               <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 {mobileMenuOpen ? (
@@ -70,19 +70,19 @@ const Navbar: React.FC<NavbarProps> = ({ user }) => {
                   onClick={() => signOut()} 
                   className="bg-gray-200 text-gray-800 py-2 px-4 rounded-md hover:bg-gray-300 transition-colors"
                 >
-                  登出
+                  Logout
                 </button>
               </div>
             ) : (
               <div className="flex items-center space-x-2">
                 <Link href="/login">
                   <button className="text-blue-900 py-2 px-4 rounded-md hover:bg-blue-50 transition-colors">
-                    登录
+                    Login
                   </button>
                 </Link>
                 <Link href="/signup">
                   <button className="bg-blue-900 text-white py-2 px-4 rounded-md hover:bg-blue-800 transition-colors">
-                    注册
+                    Sign Up
                   </button>
                 </Link>
               </div>
@@ -90,23 +90,23 @@ const Navbar: React.FC<NavbarProps> = ({ user }) => {
           </div>
         </div>
         
-        {/* 移动导航菜单 */}
+        {/* Mobile navigation menu */}
         {mobileMenuOpen && (
           <div className="md:hidden py-4 border-t border-gray-200">
             <div className="flex flex-col space-y-3">
               <Link href="/stocks" className="text-gray-700 hover:text-blue-900 py-2">
-                股票分析
+                Stock Analysis
               </Link>
               {user && (
                 <Link href="/dashboard" className="text-gray-700 hover:text-blue-900 py-2">
-                  我的账户
+                  My Account
                 </Link>
               )}
               <Link href="/pricing" className="text-gray-700 hover:text-blue-900 py-2">
-                订阅方案
+                Subscription Plans
               </Link>
               <Link href="/about" className="text-gray-700 hover:text-blue-900 py-2">
-                关于我们
+                About Us
               </Link>
               
               <div className="pt-3 border-t border-gray-200">
@@ -117,19 +117,19 @@ const Navbar: React.FC<NavbarProps> = ({ user }) => {
                       onClick={() => signOut()} 
                       className="bg-gray-200 text-gray-800 py-2 px-4 rounded-md hover:bg-gray-300 transition-colors w-full text-left"
                     >
-                      登出
+                      Logout
                     </button>
                   </div>
                 ) : (
                   <div className="flex flex-col space-y-3">
                     <Link href="/login">
                       <button className="text-blue-900 py-2 px-4 rounded-md hover:bg-blue-50 transition-colors w-full text-left">
-                        登录
+                        Login
                       </button>
                     </Link>
                     <Link href="/signup">
                       <button className="bg-blue-900 text-white py-2 px-4 rounded-md hover:bg-blue-800 transition-colors w-full text-left">
-                        注册
+                        Sign Up
                       </button>
                     </Link>
                   </div>

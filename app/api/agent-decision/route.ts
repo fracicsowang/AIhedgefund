@@ -5,71 +5,71 @@ import { warrenBuffettStrategy } from '@/agents/warrenBuffett';
 import { TradeRecommendation } from '@/types';
 import { getCurrentUser, getUserSubscription } from '@/lib/supabase';
 
-// 投资Agent映射表
+// Investment Agent mapping table
 const AGENTS: Record<string, (stockData: any) => { decision: 'BUY' | 'SELL' | 'HOLD', reasoning: string }> = {
   'benGraham': benGrahamStrategy,
   'warrenBuffett': warrenBuffettStrategy,
-  // 后续可以添加更多投资大师
+  // More investment masters can be added later
 };
 
 export async function GET(request: NextRequest) {
   try {
-    // 获取参数
+    // Get parameters
     const symbol = request.nextUrl.searchParams.get('symbol');
     const agent = request.nextUrl.searchParams.get('agent');
     
     if (!symbol || !agent) {
       return NextResponse.json(
-        { error: '缺少必要参数: symbol 或 agent' },
+        { error: 'Missing required parameters: symbol or agent' },
         { status: 400 }
       );
     }
     
-    // 验证agent是否存在
+    // Verify agent exists
     if (!AGENTS[agent]) {
       return NextResponse.json(
-        { error: `未找到投资专家: ${agent}` },
+        { error: `Investment expert not found: ${agent}` },
         { status: 400 }
       );
     }
     
-    // 获取当前用户（如果已登录）
+    // Get current user (if logged in)
     const user = await getCurrentUser();
     
-    // 检查订阅状态
+    // Check subscription status
     if (user) {
       const subscription = await getUserSubscription(user.id);
       
-      // 定义免费用户可访问的股票和投资大师
+      // Define stocks and investment masters accessible to free users
       const freeStocks = ['AAPL', 'MSFT', 'GOOG', 'AMZN', 'META', 'NVDA', 'TSLA'];
-      const freeAgents = ['benGraham']; // 免费用户只能访问本·格雷厄姆
+      const freeAgents = ['benGraham']; // Free users can only access Benjamin Graham
       
-      // 如果是免费用户但尝试访问付费内容
+      // If free user tries to access premium content
       if (subscription.subscription_status === 'free') {
         if (!freeStocks.includes(symbol.toUpperCase())) {
           return NextResponse.json(
-            { error: '需要订阅才能查看此股票的数据' },
+            { error: 'Subscription required to view data for this stock' },
             { status: 403 }
           );
         }
         
         if (!freeAgents.includes(agent)) {
           return NextResponse.json(
-            { error: '需要订阅才能访问此投资专家的建议' },
+            { error: 'Subscription required to access recommendations from this investment expert' },
             { status: 403 }
           );
         }
       }
     }
     
-    // 获取股票数据
+    // Get stock data
     const stockData = await fetchStockData(symbol);
     
-    // 调用指定的投资策略获取决策
+    // Call the specified investment strategy to get decision
     const strategy = AGENTS[agent];
     const { decision, reasoning } = strategy(stockData);
     
-    // 创建交易建议响应
+    // Create trade recommendation response
     const recommendation: TradeRecommendation = {
       symbol: symbol.toUpperCase(),
       agentName: agent,
@@ -81,28 +81,28 @@ export async function GET(request: NextRequest) {
     
     return NextResponse.json(recommendation);
   } catch (error) {
-    console.error('获取投资建议失败:', error);
+    console.error('Failed to get investment recommendation:', error);
     return NextResponse.json(
-      { error: '获取投资建议失败' },
+      { error: 'Failed to get investment recommendation' },
       { status: 500 }
     );
   }
 }
 
-// 简单的置信度计算函数
+// Simple confidence calculation function
 function calculateConfidence(decision: 'BUY' | 'SELL' | 'HOLD', reasoning: string): number {
-  // 分析推理中的确定性词汇来估计置信度
-  const highConfidenceTerms = ['明显', '强烈', '显著', '非常', '极其', '明确'];
-  const lowConfidenceTerms = ['可能', '或许', '也许', '不确定', '不明确'];
+  // Analyze certainty terms in reasoning to estimate confidence
+  const highConfidenceTerms = ['clearly', 'strongly', 'significantly', 'very', 'extremely', 'definitively'];
+  const lowConfidenceTerms = ['possibly', 'perhaps', 'maybe', 'uncertain', 'unclear'];
   
-  let confidence = 0.7; // 默认置信度
+  let confidence = 0.7; // Default confidence
   
-  // 根据决策类型调整基础置信度
+  // Adjust base confidence based on decision type
   if (decision === 'HOLD') {
-    confidence = 0.5; // 持有通常表示不那么确定
+    confidence = 0.5; // Hold typically indicates less certainty
   }
   
-  // 根据推理文本中的确定性词汇调整置信度
+  // Adjust confidence based on certainty terms in reasoning text
   const reasoningLower = reasoning.toLowerCase();
   highConfidenceTerms.forEach(term => {
     if (reasoningLower.includes(term)) confidence += 0.05;
@@ -112,6 +112,6 @@ function calculateConfidence(decision: 'BUY' | 'SELL' | 'HOLD', reasoning: strin
     if (reasoningLower.includes(term)) confidence -= 0.1;
   });
   
-  // 确保置信度在0-1范围内
+  // Ensure confidence is in the 0-1 range
   return Math.max(0.1, Math.min(0.95, confidence));
 } 

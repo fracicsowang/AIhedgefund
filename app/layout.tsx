@@ -6,8 +6,8 @@ import ClientAuthProvider from '@/components/ClientAuthProvider';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'AI Hedge Fund - 智能投资顾问',
-  description: '基于AI技术的智能投资顾问系统，提供来自多位投资大师的综合交易建议',
+  title: 'AI Hedge Fund - Smart Investment Advisor',
+  description: 'AI-powered intelligent investment advisor system, providing comprehensive trading recommendations from multiple investment masters',
 };
 
 export default function RootLayout({
@@ -16,7 +16,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-CN">
+    <html lang="en">
       <body className={`${inter.className} bg-gray-50 min-h-screen`}>
         <ClientAuthProvider>
           {children}
