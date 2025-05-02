@@ -18,6 +18,19 @@ interface Agent {
   selected: boolean;
 }
 
+// Define the agent avatar mapping (legend images)
+const agentAvatars: Record<string, string> = {
+  benGraham: '/images/legends/graham.png',
+  warrenBuffett: '/images/legends/buffett.png',
+  billAckman: '/images/legends/ackman.png',
+  cathieWood: '/images/legends/wood.png',
+  charlieMunger: '/images/legends/munger.png',
+  michaelBurry: '/images/legends/burry.png',
+  peterLynch: '/images/legends/lynch.png',
+  philFisher: '/images/legends/fisher.png',
+  stanleyDruckenmiller: '/images/legends/druckenmiller.png',
+};
+
 export default function StockAnalysisPage() {
   const { user } = useAuth();
   const router = useRouter();
@@ -40,9 +53,15 @@ export default function StockAnalysisPage() {
   
   // Analysis process related states
   const [agents, setAgents] = useState<Agent[]>([
-    { id: 'benGraham', name: 'Ben Graham', description: 'Father of value investing, focused on margin of safety and value stock selection', selected: true },
+    { id: 'benGraham', name: 'Benjamin Graham', description: 'Father of value investing, focused on margin of safety and value stock selection', selected: true },
     { id: 'warrenBuffett', name: 'Warren Buffett', description: 'Focuses on economic moat and long-term competitive advantages', selected: false },
-    { id: 'riskManager', name: 'Risk Control', description: 'Evaluates investment risks, sets stop loss points', selected: false },
+    { id: 'billAckman', name: 'Bill Ackman', description: 'Known for activist investing and concentrated bets on high-conviction ideas', selected: false },
+    { id: 'cathieWood', name: 'Cathie Wood', description: 'Focuses on disruptive innovation and high-growth technology companies', selected: false },
+    { id: 'charlieMunger', name: 'Charlie Munger', description: 'Advocates multidisciplinary thinking and long-term value investing', selected: false },
+    { id: 'michaelBurry', name: 'Michael Burry', description: 'Famous for contrarian investing and deep fundamental analysis', selected: false },
+    { id: 'peterLynch', name: 'Peter Lynch', description: 'Promotes investing in what you know and growth at a reasonable price', selected: false },
+    { id: 'philFisher', name: 'Phil Fisher', description: 'Focuses on qualitative analysis and long-term growth stocks', selected: false },
+    { id: 'stanleyDruckenmiller', name: 'Stanley Druckenmiller', description: 'Known for macro investing and dynamic asset allocation', selected: false },
   ]);
   const [analysisSteps, setAnalysisSteps] = useState<{step: string, status: 'waiting' | 'processing' | 'completed' | 'error', message: string}[]>([]);
   const [analysisResults, setAnalysisResults] = useState<{agent: string, decision: string, reasoning: string, confidence?: number, detailedAnalysis?: string}[]>([]);
@@ -177,7 +196,7 @@ export default function StockAnalysisPage() {
       ]);
       
       // Step 2: Analyst evaluation
-      const allResults = [];
+      const allResults: { agent: string; decision: string; reasoning: string; confidence?: number; detailedAnalysis?: string }[] = [];
       for (const agent of selectedAgents) {
         setAnalysisSteps(prev => [...prev, {
           step: `${agent.name} Analysis`,
@@ -189,7 +208,7 @@ export default function StockAnalysisPage() {
         await new Promise(resolve => setTimeout(resolve, 1500 + Math.random() * 1000));
         
         // Get actual analysis results based on agent ID
-        let result;
+        let result: { agent: string; decision: string; reasoning: string; confidence?: number; detailedAnalysis?: string } | undefined;
         if (agent.id === 'benGraham') {
           // Use actual Ben Graham agent
           try {
@@ -229,6 +248,276 @@ export default function StockAnalysisPage() {
               confidence: 50
             };
           }
+        } else if (agent.id === 'warrenBuffett') {
+          try {
+            console.log('[Frontend] stockData to be sent to Warren Buffett:', stockData);
+            const response = await fetch('/api/agent-decision/warrenBuffett', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                stockData,
+                apiKey: openAIKey.trim()
+              }),
+            });
+            if (!response.ok) {
+              throw new Error(`Warren Buffett analysis request failed: ${response.statusText}`);
+            }
+            const buffettResult = await response.json();
+            result = {
+              agent: agent.name,
+              decision: buffettResult.signal?.toUpperCase() || 'HOLD',
+              reasoning: buffettResult.reasoning,
+              confidence: buffettResult.confidence || (75 + Math.random() * 10),
+              detailedAnalysis: buffettResult.detailedAnalysis
+            };
+          } catch (error) {
+            console.error('Error executing Warren Buffett strategy:', error);
+            result = {
+              agent: agent.name,
+              decision: 'HOLD',
+              reasoning: 'Error occurred during Warren Buffett analysis, recommend holding until more data is available.',
+              confidence: 50
+            };
+          }
+        } else if (agent.id === 'billAckman') {
+          try {
+            console.log('[Frontend] stockData to be sent to Ackman:', stockData);
+            const response = await fetch('/api/agent-decision/billAckman', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                stockData,
+                apiKey: openAIKey.trim()
+              }),
+            });
+            if (!response.ok) {
+              throw new Error(`Ackman analysis request failed: ${response.statusText}`);
+            }
+            const ackmanResult = await response.json();
+            result = {
+              agent: agent.name,
+              decision: ackmanResult.signal?.toUpperCase() || 'HOLD',
+              reasoning: ackmanResult.reasoning,
+              confidence: ackmanResult.confidence || (75 + Math.random() * 10),
+              detailedAnalysis: ackmanResult.detailedAnalysis
+            };
+          } catch (error) {
+            console.error('Error executing Ackman strategy:', error);
+            result = {
+              agent: agent.name,
+              decision: 'HOLD',
+              reasoning: 'Error occurred during Ackman analysis, recommend holding until more data is available.',
+              confidence: 50
+            };
+          }
+        } else if (agent.id === 'cathieWood') {
+          try {
+            console.log('[Frontend] stockData to be sent to Cathie Wood:', stockData);
+            const response = await fetch('/api/agent-decision/cathieWood', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                stockData,
+                apiKey: openAIKey.trim()
+              }),
+            });
+            if (!response.ok) {
+              throw new Error(`Cathie Wood analysis request failed: ${response.statusText}`);
+            }
+            const woodResult = await response.json();
+            console.log('[Frontend] Cathie Wood API 返回:', woodResult);
+            result = {
+              agent: agent.name,
+              decision: woodResult.signal?.toUpperCase() || 'HOLD',
+              reasoning: woodResult.reasoning,
+              confidence: woodResult.confidence || (75 + Math.random() * 10),
+              detailedAnalysis: woodResult.detailedAnalysis
+            };
+          } catch (error) {
+            console.error('Error executing Cathie Wood strategy:', error);
+            result = {
+              agent: agent.name,
+              decision: 'HOLD',
+              reasoning: 'Error occurred during Cathie Wood analysis, recommend holding until more data is available.',
+              confidence: 50
+            };
+          }
+        } else if (agent.id === 'charlieMunger') {
+          try {
+            console.log('[Frontend] stockData to be sent to Charlie Munger:', stockData);
+            const response = await fetch('/api/agent-decision/charlieMunger', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                stockData,
+                apiKey: openAIKey.trim()
+              }),
+            });
+            if (!response.ok) {
+              throw new Error(`Charlie Munger analysis request failed: ${response.statusText}`);
+            }
+            const mungerResult = await response.json();
+            console.log('[Frontend] Charlie Munger API 返回:', mungerResult);
+            result = {
+              agent: agent.name,
+              decision: mungerResult.signal?.toUpperCase() || 'HOLD',
+              reasoning: mungerResult.reasoning,
+              confidence: mungerResult.confidence || (75 + Math.random() * 10),
+              detailedAnalysis: mungerResult.detailedAnalysis
+            };
+          } catch (error) {
+            console.error('Error executing Charlie Munger strategy:', error);
+            result = {
+              agent: agent.name,
+              decision: 'HOLD',
+              reasoning: 'Error occurred during Charlie Munger analysis, recommend holding until more data is available.',
+              confidence: 50
+            };
+          }
+        } else if (agent.id === 'michaelBurry') {
+          try {
+            console.log('[Frontend] stockData to be sent to Michael Burry:', stockData);
+            const response = await fetch('/api/agent-decision/michaelBurry', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                stockData,
+                apiKey: openAIKey.trim()
+              }),
+            });
+            if (!response.ok) {
+              throw new Error(`Michael Burry analysis request failed: ${response.statusText}`);
+            }
+            const burryResult = await response.json();
+            console.log('[Frontend] Michael Burry API 返回:', burryResult);
+            result = {
+              agent: agent.name,
+              decision: burryResult.signal?.toUpperCase() || 'HOLD',
+              reasoning: burryResult.reasoning,
+              confidence: burryResult.confidence || (75 + Math.random() * 10),
+              detailedAnalysis: burryResult.detailedAnalysis
+            };
+          } catch (error) {
+            console.error('Error executing Michael Burry strategy:', error);
+            result = {
+              agent: agent.name,
+              decision: 'HOLD',
+              reasoning: 'Error occurred during Michael Burry analysis, recommend holding until more data is available.',
+              confidence: 50
+            };
+          }
+        } else if (agent.id === 'peterLynch') {
+          try {
+            console.log('[Frontend] stockData to be sent to Peter Lynch:', stockData);
+            const response = await fetch('/api/agent-decision/peterLynch', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                ticker: stockData.symbol,
+                analysisData: stockData
+              }),
+            });
+            if (!response.ok) {
+              throw new Error(`Peter Lynch analysis request failed: ${response.statusText}`);
+            }
+            const lynchResult = await response.json();
+            console.log('[Frontend] Peter Lynch API 返回:', lynchResult);
+            result = {
+              agent: agent.name,
+              decision: lynchResult.signal?.toUpperCase() || 'HOLD',
+              reasoning: lynchResult.reasoning,
+              confidence: typeof lynchResult.confidence === 'number' ? lynchResult.confidence : (75 + Math.random() * 10),
+              detailedAnalysis: lynchResult.detailedAnalysis
+            };
+          } catch (error) {
+            console.error('Error executing Peter Lynch strategy:', error);
+            result = {
+              agent: agent.name,
+              decision: 'HOLD',
+              reasoning: 'Error occurred during Peter Lynch analysis, recommend holding until more data is available.',
+              confidence: 50
+            };
+          }
+        } else if (agent.id === 'philFisher') {
+          try {
+            console.log('[Frontend] stockData to be sent to Phil Fisher:', stockData);
+            const response = await fetch('/api/agent-decision/philFisher', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                ticker: stockData.symbol,
+                analysisData: stockData
+              }),
+            });
+            if (!response.ok) {
+              throw new Error(`Phil Fisher analysis request failed: ${response.statusText}`);
+            }
+            const fisherResult = await response.json();
+            console.log('[Frontend] Phil Fisher API 返回:', fisherResult);
+            result = {
+              agent: agent.name,
+              decision: fisherResult.signal?.toUpperCase() || 'HOLD',
+              reasoning: fisherResult.reasoning,
+              confidence: typeof fisherResult.confidence === 'number' ? fisherResult.confidence : (75 + Math.random() * 10),
+              detailedAnalysis: fisherResult.detailedAnalysis
+            };
+          } catch (error) {
+            console.error('Error executing Phil Fisher strategy:', error);
+            result = {
+              agent: agent.name,
+              decision: 'HOLD',
+              reasoning: 'Error occurred during Phil Fisher analysis, recommend holding until more data is available.',
+              confidence: 50
+            };
+          }
+        } else if (agent.id === 'stanleyDruckenmiller') {
+          try {
+            console.log('[Frontend] stockData to be sent to Stanley Druckenmiller:', stockData);
+            const response = await fetch('/api/agent-decision/stanleyDruckenmiller', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                ticker: stockData.symbol,
+                analysisData: stockData
+              }),
+            });
+            if (!response.ok) {
+              throw new Error(`Stanley Druckenmiller analysis request failed: ${response.statusText}`);
+            }
+            const druckResult = await response.json();
+            console.log('[Frontend] Stanley Druckenmiller API 返回:', druckResult);
+            result = {
+              agent: agent.name,
+              decision: druckResult.signal?.toUpperCase() || 'HOLD',
+              reasoning: druckResult.reasoning,
+              confidence: typeof druckResult.confidence === 'number' ? druckResult.confidence : (75 + Math.random() * 10),
+              detailedAnalysis: druckResult.detailedAnalysis
+            };
+          } catch (error) {
+            console.error('Error executing Stanley Druckenmiller strategy:', error);
+            result = {
+              agent: agent.name,
+              decision: 'HOLD',
+              reasoning: 'Error occurred during Stanley Druckenmiller analysis, recommend holding until more data is available.',
+              confidence: 50
+            };
+          }
         } else {
           // Simulate results for other agents
           const decisions = ['BUY', 'SELL', 'HOLD'];
@@ -243,14 +532,15 @@ export default function StockAnalysisPage() {
           };
         }
         
-        allResults.push(result);
-        
+        if (result) {
+          allResults.push(result);
+        }
         setAnalysisSteps(prev => [
           ...prev.slice(0, -1),
           { 
             ...prev[prev.length - 1], 
             status: 'completed', 
-            message: `${agent.name} analysis complete: ${result.decision}`
+            message: `${agent.name} analysis complete: ${result ? result.decision : 'N/A'}`
           }
         ]);
       }
@@ -295,7 +585,7 @@ export default function StockAnalysisPage() {
       allResults.forEach(result => {
         const decision = result.decision as keyof typeof decisionCounts;
         decisionCounts[decision]++;
-        decisionConfidence[decision] += result.confidence || 0;
+        decisionConfidence[decision] += typeof result.confidence === 'number' ? result.confidence : 0;
       });
       
       // Find the most common decision
@@ -314,8 +604,13 @@ export default function StockAnalysisPage() {
       });
       
       // Calculate average confidence
-      const avgConfidence = decisionConfidence[finalDecisionType as keyof typeof decisionConfidence] / 
-                           (decisionCounts[finalDecisionType as keyof typeof decisionCounts] || 1);
+      let avgConfidence = 0;
+      if (allResults.length === 1) {
+        avgConfidence = typeof allResults[0].confidence === 'number' ? allResults[0].confidence : 0;
+      } else {
+        avgConfidence = decisionConfidence[finalDecisionType as keyof typeof decisionConfidence] /
+          (decisionCounts[finalDecisionType as keyof typeof decisionCounts] || 1);
+      }
       
       // Generate final decision object
       const decision = {
@@ -447,7 +742,13 @@ export default function StockAnalysisPage() {
                       className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                       aria-label={`Select ${agent.name} analyst`}
                     />
-                    <h3 className="text-lg font-medium ml-2">{agent.name}</h3>
+                    {/* Display legend avatar */}
+                    <img 
+                      src={agentAvatars[agent.id] || '/images/legends/graham.png'} 
+                      alt={agent.name} 
+                      className="h-8 w-8 rounded-full object-cover ml-2 mr-2 border border-gray-300" 
+                    />
+                    <h3 className="text-lg font-medium">{agent.name}</h3>
                   </div>
                   <p className="text-gray-600 text-sm">{agent.description}</p>
                 </div>
@@ -579,20 +880,6 @@ export default function StockAnalysisPage() {
                         <span className="text-xs font-medium">{result.confidence.toFixed(0)}%</span>
                       </div>
                     )}
-                    
-                    {result.detailedAnalysis && (
-                      <div className="mt-3 pt-3 border-t border-gray-200">
-                        <button
-                          className="text-sm text-blue-600 hover:text-blue-800"
-                          onClick={() => {
-                            // Here you can implement expand/collapse detailed analysis
-                            console.log('Show detailed analysis');
-                          }}
-                        >
-                          Show detailed analysis
-                        </button>
-                      </div>
-                    )}
                   </div>
                 ))}
               </div>
@@ -600,8 +887,7 @@ export default function StockAnalysisPage() {
           )}
         </div>
       </main>
-      
       <Footer />
     </div>
   );
-} 
+}

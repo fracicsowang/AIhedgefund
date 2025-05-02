@@ -25,25 +25,28 @@ import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { StockData } from '@/types';
 
 // 定义代理类型
-export type AgentType = 'benGraham' | 'buffett' | 'riskManager';
+export type AgentType = 'benGraham' | 'buffett' | 'riskManager' | 'billAckman';
 
 // 代理头像和名称映射
 const agentAvatars: Record<AgentType, string> = {
   'benGraham': '/images/agents/ben-graham.jpg',
   'buffett': '/images/agents/warren-buffett.jpg',
-  'riskManager': '/images/agents/risk-manager.jpg'
+  'riskManager': '/images/agents/risk-manager.jpg',
+  'billAckman': '/images/legends/ackman.png',
 };
 
 const agentNames: Record<AgentType, string> = {
   'benGraham': 'Benjamin Graham',
   'buffett': 'Warren Buffett',
-  'riskManager': '风险管理专家'
+  'riskManager': '风险管理专家',
+  'billAckman': 'Bill Ackman',
 };
 
 const agentDescriptions: Record<AgentType, string> = {
   'benGraham': '价值投资之父，注重安全边际，寻找内在价值高于市场价的股票',
   'buffett': '伯克希尔哈撒韦公司掌舵人，专注企业质量、管理和护城河',
-  'riskManager': '关注风险控制和市场技术指标，防范下行风险'
+  'riskManager': '关注风险控制和市场技术指标，防范下行风险',
+  'billAckman': '激进投资代表，专注高质量企业和资本结构优化',
 };
 
 // 决策映射到图标和颜色
@@ -275,14 +278,15 @@ export async function getAgentAnalysis(
 ): Promise<AgentAnalysisResult> {
   try {
     // 构建请求URL和请求体
-    const apiUrl = `/api/agent-decision/${agentType}/`;
+    let apiUrl = `/api/agent-decision/${agentType}/`;
     const requestBody: any = { stockData };
-    
-    // 如果是Ben Graham策略且提供了API密钥，则添加到请求中
     if (agentType === 'benGraham' && openAIKey) {
       requestBody.apiKey = openAIKey;
     }
-    
+    // billAckman 也支持 openAIKey
+    if (agentType === 'billAckman' && openAIKey) {
+      requestBody.apiKey = openAIKey;
+    }
     // 发送请求
     const response = await fetch(apiUrl, {
       method: 'POST',
@@ -291,13 +295,11 @@ export async function getAgentAnalysis(
       },
       body: JSON.stringify(requestBody),
     });
-    
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       console.error('Agent API error:', errorData);
       throw new Error(`API错误: ${errorData.error || response.statusText}`);
     }
-    
     const result = await response.json();
     return result;
   } catch (error: any) {
