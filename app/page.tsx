@@ -20,8 +20,15 @@ export function generateMetadata() {
 // Fetch stock data from server-side API, directly using Yahoo Finance API
 async function getStocks() {
   try {
-    // Try to get data from API
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/stocks`, { 
+    // 适配服务端 SSR fetch 绝对路径
+    const isServer = typeof window === 'undefined';
+    let baseUrl = '';
+    if (isServer) {
+      baseUrl =
+        process.env.NEXT_PUBLIC_API_URL ||
+        (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
+    }
+    const response = await fetch(`${baseUrl}/api/stocks`, {
       cache: 'no-store',
       next: { revalidate: 1800 } // Set 30 minutes revalidation time
     });

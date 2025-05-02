@@ -22,6 +22,7 @@ export async function POST(request: Request) {
       const ticker = body.stockData.symbol || '';
       const result = await generateBurryOutput(ticker, body.stockData, useOpenAI ? apiKey : '');
       console.log('[API Route /agent-decision/michaelBurry] OpenAI/LLM 返回:', result);
+      console.log('[API Route /agent-decision/michaelBurry] 返回结果:', JSON.stringify(result, null, 2));
       return NextResponse.json(result);
     } catch (err: any) {
       console.error('[API Route /agent-decision/michaelBurry] Error:', err);

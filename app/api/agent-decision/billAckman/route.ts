@@ -37,6 +37,7 @@ export async function POST(request: Request) {
         reasoning: 'OpenAI API key not set, cannot perform Ackman LLM analysis.'
       };
     }
+    console.log('[API Route /agent-decision/billAckman] 返回结果:', JSON.stringify(result, null, 2));
     return NextResponse.json(result);
   } catch (error: any) {
     console.error('Bill Ackman分析出错:', error);

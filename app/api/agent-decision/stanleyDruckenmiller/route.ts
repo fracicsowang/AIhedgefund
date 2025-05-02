@@ -27,6 +27,7 @@ export async function POST(request: Request) {
     // 调用智能体主函数
     const result = await generateDruckenmillerOutput(ticker, analysisData, apiKey);
     console.log('[API Route /agent-decision/stanleyDruckenmiller] 智能体返回:', result);
+    console.log('[API Route /agent-decision/stanleyDruckenmiller] 返回结果:', JSON.stringify(result, null, 2));
     return NextResponse.json(result);
   } catch (err: any) {
     console.error('[API Route /agent-decision/stanleyDruckenmiller] 错误:', err);

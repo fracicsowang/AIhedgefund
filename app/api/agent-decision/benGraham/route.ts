@@ -23,6 +23,7 @@ export async function POST(request: Request) {
 
     // Call the real benGrahamStrategy from agents/benGraham.ts
     const result = await benGrahamStrategy(body.stockData as StockData, useOpenAI ? apiKey : null);
+    console.log('[API Route /agent-decision/benGraham] 返回结果:', JSON.stringify(result, null, 2));
     return NextResponse.json(result);
   } catch (error: any) {
     console.error('Ben Graham分析出错:', error);

@@ -7,6 +7,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { useAuth } from '@/lib/auth';
 import { StockData } from '@/types';
+import PortfolioManager from '../../components/PortfolioManager';
 
 // Import analysis agents
 import { benGrahamStrategy } from '@/agents/benGraham';
@@ -66,6 +67,8 @@ export default function StockAnalysisPage() {
   const [analysisSteps, setAnalysisSteps] = useState<{step: string, status: 'waiting' | 'processing' | 'completed' | 'error', message: string}[]>([]);
   const [analysisResults, setAnalysisResults] = useState<{agent: string, decision: string, reasoning: string, confidence?: number, detailedAnalysis?: string}[]>([]);
   const [finalDecision, setFinalDecision] = useState<{decision: string, reasoning: string, confidence: number} | null>(null);
+  
+  const [analysisMode, setAnalysisMode] = useState<'portfolio' | 'single'>('single');
   
   // Update status when the symbol parameter in URL changes
   useEffect(() => {
@@ -645,6 +648,16 @@ export default function StockAnalysisPage() {
     }
   };
   
+  // 新增：分析模式切换时拦截未登录用户
+  const handleModeChange = (mode: 'portfolio' | 'single') => {
+    if (mode === 'portfolio' && !user) {
+      alert('请先登录后再使用"我的持仓分析"功能！');
+      router.push('/login');
+      return;
+    }
+    setAnalysisMode(mode);
+  };
+  
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar user={user} />
@@ -653,237 +666,262 @@ export default function StockAnalysisPage() {
         <div className="container mx-auto px-4">
           <h1 className="text-3xl font-bold mb-8">Detailed Stock Analysis</h1>
           
-          {/* Step 1: Stock search area */}
-          <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-            <h2 className="text-xl font-semibold mb-4">Step 1: Select a Stock</h2>
-            
-            <div className="relative">
-              <div className="flex mb-2">
-                <input
-                  type="text"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Enter stock code or name..."
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                />
-                <button
-                  className="bg-blue-900 text-white px-4 py-2 rounded-r-md hover:bg-blue-800 transition-colors"
-                  onClick={handleSearch}
-                  disabled={loading}
-                >
-                  {loading ? 'Searching...' : 'Search'}
-                </button>
-              </div>
-              
-              {showResults && searchResults.length > 0 && (
-                <div className="absolute z-10 w-full bg-white mt-1 border border-gray-300 rounded-md shadow-lg">
-                  <ul>
-                    {searchResults.map((result) => (
-                      <li 
-                        key={result}
-                        className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                        onClick={() => selectStock(result)}
-                      >
-                        {result}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              
-              {showResults && searchResults.length === 0 && (
-                <div className="text-gray-600 mt-2">
-                  No results found, please try other keywords
-                </div>
-              )}
-            </div>
-            
-            {/* Selected stock information */}
-            {stockData && (
-              <div className="mt-6 p-4 bg-gray-50 rounded-md">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h3 className="text-lg font-semibold">{stockData.quoteSummary?.longName || stockData.symbol}</h3>
-                    <p className="text-gray-600">{stockData.symbol}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-2xl font-bold">${stockData.price?.regularMarketPrice?.toFixed(2)}</p>
-                    <p className={`${(stockData.price?.regularMarketChange || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {(stockData.price?.regularMarketChange || 0) >= 0 ? '+' : ''}
-                      {stockData.price?.regularMarketChange?.toFixed(2)} 
-                      ({(stockData.price?.regularMarketChangePercent || 0) >= 0 ? '+' : ''}
-                      {stockData.price?.regularMarketChangePercent?.toFixed(2)}%)
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-          
-          {/* Step 2: Select analysts */}
-          <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-            <h2 className="text-xl font-semibold mb-4">Step 2: Select Analysts</h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {agents.map((agent) => (
-                <div 
-                  key={agent.id}
-                  className={`border p-4 rounded-md cursor-pointer transition-colors ${
-                    agent.selected ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-blue-300'
-                  }`}
-                  onClick={() => toggleAgent(agent.id)}
-                >
-                  <div className="flex items-center mb-2">
-                    <input 
-                      type="checkbox" 
-                      checked={agent.selected}
-                      onChange={() => toggleAgent(agent.id)}
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                      aria-label={`Select ${agent.name} analyst`}
-                    />
-                    {/* Display legend avatar */}
-                    <img 
-                      src={agentAvatars[agent.id] || '/images/legends/graham.png'} 
-                      alt={agent.name} 
-                      className="h-8 w-8 rounded-full object-cover ml-2 mr-2 border border-gray-300" 
-                    />
-                    <h3 className="text-lg font-medium">{agent.name}</h3>
-                  </div>
-                  <p className="text-gray-600 text-sm">{agent.description}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-          
-          {/* Start analysis button */}
-          <div className="text-center mb-8">
+          {/* Step 0: 分析模式选择 */}
+          <div className="flex gap-4 mb-8">
             <button
-              onClick={startAnalysis}
-              disabled={!stockData || analyzing}
-              className="bg-blue-900 text-white py-3 px-8 rounded-md hover:bg-blue-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-lg font-medium"
+              className={`px-4 py-2 rounded-md font-medium border ${analysisMode === 'portfolio' ? 'bg-blue-900 text-white' : 'bg-white text-blue-900 border-blue-900'}`}
+              onClick={() => handleModeChange('portfolio')}
             >
-              {analyzing ? 'Analysis in Progress...' : 'Start Analysis'}
+              Portfolio Analysis
             </button>
-            
-            {error && (
-              <div className="mt-4 p-3 bg-red-100 text-red-700 rounded-md">
-                {error}
-              </div>
-            )}
+            <button
+              className={`px-4 py-2 rounded-md font-medium border ${analysisMode === 'single' ? 'bg-blue-900 text-white' : 'bg-white text-blue-900 border-blue-900'}`}
+              onClick={() => handleModeChange('single')}
+            >
+              Single Stock Analysis
+            </button>
           </div>
           
-          {/* Analysis process display */}
-          {analysisSteps.length > 0 && (
-            <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-              <h2 className="text-xl font-semibold mb-4">Analysis Progress</h2>
-              
-              <div className="space-y-4">
-                {analysisSteps.map((step, index) => (
-                  <div key={index} className="flex items-start">
-                    <div className={`flex-shrink-0 h-6 w-6 rounded-full flex items-center justify-center mr-3 mt-0.5 ${
-                      step.status === 'completed' ? 'bg-green-100 text-green-600' :
-                      step.status === 'processing' ? 'bg-blue-100 text-blue-600' :
-                      step.status === 'error' ? 'bg-red-100 text-red-600' :
-                      'bg-gray-100 text-gray-600'
-                    }`}>
-                      {step.status === 'completed' && (
-                        <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                      )}
-                      {step.status === 'processing' && (
-                        <div className="h-3 w-3 rounded-full bg-blue-600 animate-pulse"></div>
-                      )}
-                      {step.status === 'error' && (
-                        <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                        </svg>
-                      )}
-                    </div>
-                    <div>
-                      <h4 className="font-medium">{step.step}</h4>
-                      <p className="text-gray-600 text-sm">{step.message}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
+          {/* Step 1: 展示对应内容 */}
+          {analysisMode === 'portfolio' ? (
+            <div className="mb-8">
+              <PortfolioManager user={user} />
             </div>
-          )}
-          
-          {/* Analysis results */}
-          {finalDecision && (
-            <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-              <h2 className="text-xl font-semibold mb-6">Analysis Results</h2>
-              
-              {/* Final decision card */}
-              <div className={`p-6 rounded-lg mb-8 ${
-                finalDecision.decision === 'BUY' ? 'bg-green-50 border border-green-200' :
-                finalDecision.decision === 'SELL' ? 'bg-red-50 border border-red-200' :
-                'bg-yellow-50 border border-yellow-200'
-              }`}>
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-xl font-bold">Final Decision</h3>
-                  <div className={`px-4 py-1 rounded-full font-medium ${
-                    finalDecision.decision === 'BUY' ? 'bg-green-600 text-white' :
-                    finalDecision.decision === 'SELL' ? 'bg-red-600 text-white' :
-                    'bg-yellow-600 text-white'
-                  }`}>
-                    {finalDecision.decision}
+          ) : (
+            <>
+              {/* Step 1: Stock search area */}
+              <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+                <h2 className="text-xl font-semibold mb-4">Step 1: Select a Stock</h2>
+                
+                <div className="relative">
+                  <div className="flex mb-2">
+                    <input
+                      type="text"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Enter stock code or name..."
+                      value={searchInput}
+                      onChange={(e) => setSearchInput(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                    />
+                    <button
+                      className="bg-blue-900 text-white px-4 py-2 rounded-r-md hover:bg-blue-800 transition-colors"
+                      onClick={handleSearch}
+                      disabled={loading}
+                    >
+                      {loading ? 'Searching...' : 'Search'}
+                    </button>
                   </div>
+                  
+                  {showResults && searchResults.length > 0 && (
+                    <div className="absolute z-10 w-full bg-white mt-1 border border-gray-300 rounded-md shadow-lg">
+                      <ul>
+                        {searchResults.map((result) => (
+                          <li 
+                            key={result}
+                            className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                            onClick={() => selectStock(result)}
+                          >
+                            {result}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  
+                  {showResults && searchResults.length === 0 && (
+                    <div className="text-gray-600 mt-2">
+                      No results found, please try other keywords
+                    </div>
+                  )}
                 </div>
                 
-                <p className="mb-4">{finalDecision.reasoning}</p>
-                
-                <div className="flex items-center">
-                  <span className="text-gray-600 mr-2">Confidence:</span>
-                  <div className="w-full bg-gray-200 rounded-full h-2.5 mr-2">
-                    <div className={`h-2.5 rounded-full ${
-                      finalDecision.confidence > 80 ? 'bg-green-600' :
-                      finalDecision.confidence > 60 ? 'bg-blue-600' :
-                      finalDecision.confidence > 40 ? 'bg-yellow-600' : 'bg-red-600'
-                    }`} style={{ width: `${finalDecision.confidence}%` }}></div>
-                  </div>
-                  <span className="text-sm font-medium">{finalDecision.confidence.toFixed(0)}%</span>
-                </div>
-              </div>
-              
-              {/* Individual analyst results */}
-              <h3 className="text-lg font-semibold mb-4">Analyst Opinions</h3>
-              
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {analysisResults.map((result, index) => (
-                  <div key={index} className="border rounded-lg p-4">
-                    <div className="flex justify-between items-center mb-3">
-                      <h4 className="font-bold">{result.agent}</h4>
-                      <div className={`px-3 py-1 text-xs rounded-full font-medium ${
-                        result.decision === 'BUY' ? 'bg-green-100 text-green-800' :
-                        result.decision === 'SELL' ? 'bg-red-100 text-red-800' :
-                        'bg-yellow-100 text-yellow-800'
-                      }`}>
-                        {result.decision}
+                {/* Selected stock information */}
+                {stockData && (
+                  <div className="mt-6 p-4 bg-gray-50 rounded-md">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <h3 className="text-lg font-semibold">{stockData.quoteSummary?.longName || stockData.symbol}</h3>
+                        <p className="text-gray-600">{stockData.symbol}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-2xl font-bold">${stockData.price?.regularMarketPrice?.toFixed(2)}</p>
+                        <p className={`${(stockData.price?.regularMarketChange || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {(stockData.price?.regularMarketChange || 0) >= 0 ? '+' : ''}
+                          {stockData.price?.regularMarketChange?.toFixed(2)} 
+                          ({(stockData.price?.regularMarketChangePercent || 0) >= 0 ? '+' : ''}
+                          {stockData.price?.regularMarketChangePercent?.toFixed(2)}%)
+                        </p>
                       </div>
                     </div>
-                    
-                    <p className="text-gray-700 text-sm mb-3">{result.reasoning}</p>
-                    
-                    {result.confidence && (
-                      <div className="flex items-center">
-                        <span className="text-xs text-gray-500 mr-2">Confidence:</span>
-                        <div className="w-full bg-gray-200 rounded-full h-1.5 mr-2">
-                          <div className={`h-1.5 rounded-full ${
-                            result.confidence > 80 ? 'bg-green-600' :
-                            result.confidence > 60 ? 'bg-blue-600' :
-                            result.confidence > 40 ? 'bg-yellow-600' : 'bg-red-600'
-                          }`} style={{ width: `${result.confidence}%` }}></div>
+                  </div>
+                )}
+              </div>
+              
+              {/* Step 2: Select analysts */}
+              <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+                <h2 className="text-xl font-semibold mb-4">Step 2: Select Analysts</h2>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {agents.map((agent) => (
+                    <div 
+                      key={agent.id}
+                      className={`border p-4 rounded-md cursor-pointer transition-colors ${
+                        agent.selected ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-blue-300'
+                      }`}
+                      onClick={() => toggleAgent(agent.id)}
+                    >
+                      <div className="flex items-center mb-2">
+                        <input 
+                          type="checkbox" 
+                          checked={agent.selected}
+                          onChange={() => toggleAgent(agent.id)}
+                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                          aria-label={`Select ${agent.name} analyst`}
+                        />
+                        {/* Display legend avatar */}
+                        <img 
+                          src={agentAvatars[agent.id] || '/images/legends/graham.png'} 
+                          alt={agent.name} 
+                          className="h-8 w-8 rounded-full object-cover ml-2 mr-2 border border-gray-300" 
+                        />
+                        <h3 className="text-lg font-medium">{agent.name}</h3>
+                      </div>
+                      <p className="text-gray-600 text-sm">{agent.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Start analysis button */}
+              <div className="text-center mb-8">
+                <button
+                  onClick={startAnalysis}
+                  disabled={!stockData || analyzing}
+                  className="bg-blue-900 text-white py-3 px-8 rounded-md hover:bg-blue-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-lg font-medium"
+                >
+                  {analyzing ? 'Analysis in Progress...' : 'Start Analysis'}
+                </button>
+                
+                {error && (
+                  <div className="mt-4 p-3 bg-red-100 text-red-700 rounded-md">
+                    {error}
+                  </div>
+                )}
+              </div>
+              
+              {/* Analysis process display */}
+              {analysisSteps.length > 0 && (
+                <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+                  <h2 className="text-xl font-semibold mb-4">Analysis Progress</h2>
+                  
+                  <div className="space-y-4">
+                    {analysisSteps.map((step, index) => (
+                      <div key={index} className="flex items-start">
+                        <div className={`flex-shrink-0 h-6 w-6 rounded-full flex items-center justify-center mr-3 mt-0.5 ${
+                          step.status === 'completed' ? 'bg-green-100 text-green-600' :
+                          step.status === 'processing' ? 'bg-blue-100 text-blue-600' :
+                          step.status === 'error' ? 'bg-red-100 text-red-600' :
+                          'bg-gray-100 text-gray-600'
+                        }`}>
+                          {step.status === 'completed' && (
+                            <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                          )}
+                          {step.status === 'processing' && (
+                            <div className="h-3 w-3 rounded-full bg-blue-600 animate-pulse"></div>
+                          )}
+                          {step.status === 'error' && (
+                            <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                            </svg>
+                          )}
                         </div>
-                        <span className="text-xs font-medium">{result.confidence.toFixed(0)}%</span>
+                        <div>
+                          <h4 className="font-medium">{step.step}</h4>
+                          <p className="text-gray-600 text-sm">{step.message}</p>
+                        </div>
                       </div>
-                    )}
+                    ))}
                   </div>
-                ))}
-              </div>
-            </div>
+                </div>
+              )}
+              
+              {/* Analysis results */}
+              {finalDecision && (
+                <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+                  <h2 className="text-xl font-semibold mb-6">Analysis Results</h2>
+                  
+                  {/* Final decision card */}
+                  <div className={`p-6 rounded-lg mb-8 ${
+                    finalDecision.decision === 'BUY' ? 'bg-green-50 border border-green-200' :
+                    finalDecision.decision === 'SELL' ? 'bg-red-50 border border-red-200' :
+                    'bg-yellow-50 border border-yellow-200'
+                  }`}>
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-xl font-bold">Final Decision</h3>
+                      <div className={`px-4 py-1 rounded-full font-medium ${
+                        finalDecision.decision === 'BUY' ? 'bg-green-600 text-white' :
+                        finalDecision.decision === 'SELL' ? 'bg-red-600 text-white' :
+                        'bg-yellow-600 text-white'
+                      }`}>
+                        {finalDecision.decision}
+                      </div>
+                    </div>
+                    
+                    <p className="mb-4">{finalDecision.reasoning}</p>
+                    
+                    <div className="flex items-center">
+                      <span className="text-gray-600 mr-2">Confidence:</span>
+                      <div className="w-full bg-gray-200 rounded-full h-2.5 mr-2">
+                        <div className={`h-2.5 rounded-full ${
+                          finalDecision.confidence > 80 ? 'bg-green-600' :
+                          finalDecision.confidence > 60 ? 'bg-blue-600' :
+                          finalDecision.confidence > 40 ? 'bg-yellow-600' : 'bg-red-600'
+                        }`} style={{ width: `${finalDecision.confidence}%` }}></div>
+                      </div>
+                      <span className="text-sm font-medium">{finalDecision.confidence.toFixed(0)}%</span>
+                    </div>
+                  </div>
+                  
+                  {/* Individual analyst results */}
+                  <h3 className="text-lg font-semibold mb-4">Analyst Opinions</h3>
+                  
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {analysisResults.map((result, index) => (
+                      <div key={index} className="border rounded-lg p-4">
+                        <div className="flex justify-between items-center mb-3">
+                          <h4 className="font-bold">{result.agent}</h4>
+                          <div className={`px-3 py-1 text-xs rounded-full font-medium ${
+                            result.decision === 'BUY' ? 'bg-green-100 text-green-800' :
+                            result.decision === 'SELL' ? 'bg-red-100 text-red-800' :
+                            'bg-yellow-100 text-yellow-800'
+                          }`}>
+                            {result.decision}
+                          </div>
+                        </div>
+                        
+                        <p className="text-gray-700 text-sm mb-3">{result.reasoning}</p>
+                        
+                        {result.confidence && (
+                          <div className="flex items-center">
+                            <span className="text-xs text-gray-500 mr-2">Confidence:</span>
+                            <div className="w-full bg-gray-200 rounded-full h-1.5 mr-2">
+                              <div className={`h-1.5 rounded-full ${
+                                result.confidence > 80 ? 'bg-green-600' :
+                                result.confidence > 60 ? 'bg-blue-600' :
+                                result.confidence > 40 ? 'bg-yellow-600' : 'bg-red-600'
+                              }`} style={{ width: `${result.confidence}%` }}></div>
+                            </div>
+                            <span className="text-xs font-medium">{result.confidence.toFixed(0)}%</span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
       </main>

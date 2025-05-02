@@ -1,4 +1,5 @@
 import { StockData, TradeRecommendation } from '@/types';
+import { fetchStockDataWithCache } from '@/lib/fetchStockData';
 
 /**
  * 风险管理器
@@ -65,4 +66,81 @@ export function riskAssessment(
     riskAssessment,
     stopLossPrice
   };
+}
+
+export interface Holding {
+  ticker: string;
+  shares: number;
+  cost_basis: number;
+}
+
+export interface Portfolio {
+  cash: number;
+  holdings: Holding[];
+}
+
+export interface RiskAnalysisResult {
+  remaining_position_limit: number;
+  current_price: number;
+  reasoning: {
+    portfolio_value: number;
+    current_position: number;
+    position_limit: number;
+    remaining_limit: number;
+    available_cash: number;
+  };
+}
+
+/**
+ * RiskManager agent: 计算每只股票的风控建议
+ * @param portfolio 用户持仓（含现金、持仓列表）
+ * @param tickers 股票代码数组
+ * @returns 每只股票的风控分析结果
+ */
+export async function riskManagerAgent(
+  portfolio: Portfolio,
+  tickers: string[]
+): Promise<Record<string, RiskAnalysisResult>> {
+  const riskAnalysis: Record<string, RiskAnalysisResult> = {};
+  const currentPrices: Record<string, number> = {};
+
+  // 1. 批量获取当前价格
+  for (const ticker of tickers) {
+    try {
+      const stockData: StockData = await fetchStockDataWithCache(ticker);
+      const currentPrice = stockData.price?.regularMarketPrice || 0;
+      currentPrices[ticker] = currentPrice;
+    } catch (e) {
+      currentPrices[ticker] = 0;
+    }
+  }
+
+  // 2. 计算总资产
+  const totalPortfolioValue =
+    (portfolio.cash || 0) +
+    (portfolio.holdings?.reduce((sum, h) => sum + (h.cost_basis || 0), 0) || 0);
+
+  // 3. 风控分析
+  for (const ticker of tickers) {
+    const currentPrice = currentPrices[ticker];
+    const holding = portfolio.holdings?.find(h => h.ticker === ticker);
+    const currentPositionValue = holding?.cost_basis || 0;
+    const positionLimit = totalPortfolioValue * 0.2;
+    const remainingPositionLimit = positionLimit - currentPositionValue;
+    const maxPositionSize = Math.min(remainingPositionLimit, portfolio.cash || 0);
+
+    riskAnalysis[ticker] = {
+      remaining_position_limit: maxPositionSize,
+      current_price: currentPrice,
+      reasoning: {
+        portfolio_value: totalPortfolioValue,
+        current_position: currentPositionValue,
+        position_limit: positionLimit,
+        remaining_limit: remainingPositionLimit,
+        available_cash: portfolio.cash || 0,
+      },
+    };
+  }
+
+  return riskAnalysis;
 } 

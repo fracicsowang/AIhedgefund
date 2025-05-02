@@ -29,7 +29,7 @@ export async function POST(request: Request) {
 
     // 调用 Peter Lynch 智能体分析
     const result = await generateLynchOutput(ticker, analysisData, apiKey);
-    console.log('[Peter Lynch] OpenAI 原始返回内容:', result);
+    console.log('[API Route /agent-decision/peterLynch] 返回结果:', JSON.stringify(result, null, 2));
     return NextResponse.json(result);
   } catch (error: any) {
     console.error('Peter Lynch 分析出错:', error);

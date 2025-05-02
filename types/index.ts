@@ -136,4 +136,21 @@ export interface PortfolioDecision {
     momentum: string;
     volatility: string;
   };
+  action?: string;
+  quantity?: number;
+}
+
+// 持仓明细
+export interface Holding {
+  ticker: string;        // 股票代码
+  shares: number;        // 持仓股数，正为多头，负为空头
+  cost_basis: number;    // 持仓总成本
+}
+
+// 投资组合
+export interface Portfolio {
+  cash: number;          // 现金余额
+  holdings: Holding[];   // 持仓明细
+  // 可选扩展：margin_requirement?: number;
+  // 可选扩展：history?: PortfolioHistory[];
 } 

@@ -1,5 +1,6 @@
 import { StockData, TradeRecommendation, PortfolioDecision } from '@/types';
 import { riskAssessment } from './riskManager';
+import { OpenAI } from 'openai';
 
 /**
  * 投资组合管理器
@@ -184,4 +185,172 @@ function generateTechnicalsAnalysis(stockData: StockData) {
     momentum,
     volatility
   };
+}
+
+// --- 数据结构定义 ---
+export type PortfolioDecisionAction = 'buy' | 'sell' | 'short' | 'cover' | 'hold';
+
+export interface PortfolioManagerOutput {
+  decisions: Record<string, import('@/types').PortfolioDecision>; // ticker -> decision
+}
+
+export interface PortfolioManagerAgentInput {
+  portfolio: {
+    cash: number;
+    holdings: { ticker: string; shares: number; cost_basis: number }[];
+    positions?: Record<string, number>; // 可选，long/short 持仓
+    margin_requirement?: number;
+    margin_used?: number;
+  };
+  analystSignals: Record<string, any>; // 各 agent 的信号，含 risk_manager
+  tickers: string[];
+  apiKey: string;
+  modelName?: string;
+  modelProvider?: string;
+}
+
+// --- 主体函数骨架 ---
+export async function portfolioManagerAgent({
+  portfolio,
+  analystSignals,
+  tickers,
+  apiKey,
+  modelName = 'gpt-3.5-turbo',
+  modelProvider = 'openai',
+}: PortfolioManagerAgentInput): Promise<PortfolioManagerOutput> {
+  // 1. 整理风控数据、最大可买/可卖股数、所有 agent 信号
+  const positionLimits: Record<string, number> = {};
+  const currentPrices: Record<string, number> = {};
+  const maxShares: Record<string, number> = {};
+  const signalsByTicker: Record<string, any> = {};
+  for (const ticker of tickers) {
+    const riskData = analystSignals?.risk_manager?.[ticker] || {};
+    positionLimits[ticker] = riskData.remaining_position_limit || 0;
+    currentPrices[ticker] = riskData.current_price || 0;
+    maxShares[ticker] = currentPrices[ticker] > 0 ? Math.floor(positionLimits[ticker] / currentPrices[ticker]) : 0;
+    // 整理所有 agent 信号
+    const tickerSignals: Record<string, any> = {};
+    for (const agent in analystSignals) {
+      if (agent !== 'risk_manager' && analystSignals[agent]?.[ticker]) {
+        tickerSignals[agent] = {
+          signal: analystSignals[agent][ticker].signal,
+          confidence: analystSignals[agent][ticker].confidence,
+        };
+      }
+    }
+    signalsByTicker[ticker] = tickerSignals;
+  }
+
+  // 2. 组装 LLM prompt
+  const systemPrompt = `You are a portfolio manager making final trading decisions based on multiple tickers.\n\nTrading Rules:\n- For long positions:\n  * Only buy if you have available cash\n  * Only sell if you currently hold long shares of that ticker\n  * Sell quantity must be ≤ current long position shares\n  * Buy quantity must be ≤ max_shares for that ticker\n- For short positions:\n  * Only short if you have available margin (position value × margin requirement)\n  * Only cover if you currently have short shares of that ticker\n  * Cover quantity must be ≤ current short position shares\n  * Short quantity must respect margin requirements\n- The max_shares values are pre-calculated to respect position limits\n- Consider both long and short opportunities based on signals\n- Maintain appropriate risk management with both long and short exposure\n\nAvailable Actions:\n- \"buy\": Open or add to long position\n- \"sell\": Close or reduce long position\n- \"short\": Open or add to short position\n- \"cover\": Close or reduce short position\n- \"hold\": No action\n\nInputs:\n- signals_by_ticker: dictionary of ticker → signals\n- max_shares: maximum shares allowed per ticker\n- portfolio_cash: current cash in portfolio\n- portfolio_positions: current positions (both long and short)\n- current_prices: current prices for each ticker\n- margin_requirement: current margin requirement for short positions (e.g., 0.5 means 50%)\n- total_margin_used: total margin currently in use`;
+
+  const userPrompt = `Based on the team's analysis, make your trading decisions for each ticker.\n\nHere are the signals by ticker:\n${JSON.stringify(signalsByTicker, null, 2)}\n\nCurrent Prices:\n${JSON.stringify(currentPrices, null, 2)}\n\nMaximum Shares Allowed For Purchases:\n${JSON.stringify(maxShares, null, 2)}\n\nPortfolio Cash: ${portfolio.cash}\nCurrent Positions: ${JSON.stringify(portfolio.positions || {}, null, 2)}\nCurrent Margin Requirement: ${portfolio.margin_requirement || 0.5}\nTotal Margin Used: ${portfolio.margin_used || 0}\n\nOutput strictly in JSON with the following structure:\n{\n  \"decisions\": {\n    \"TICKER1\": {\n      \"action\": \"buy/sell/short/cover/hold\",\n      \"quantity\": integer,\n      \"confidence\": float between 0 and 100,\n      \"reasoning\": \"string\"\n    },\n    \"TICKER2\": { ... },\n    ...\n  }\n}`;
+
+  // 3. 调用 OpenAI
+  const realApiKey = apiKey || process.env.OPENAI_API_KEY;
+  if (!realApiKey) throw new Error('OpenAI API key not found.');
+  const openai = new OpenAI({ apiKey: realApiKey });
+
+  // ====== 新增详细调试日志 ======
+  console.log('[PortfolioManager] systemPrompt:', systemPrompt);
+  console.log('[PortfolioManager] userPrompt:', userPrompt);
+  console.log('[PortfolioManager] Using OpenAI key:', realApiKey.slice(0, 10));
+  try {
+    const response = await openai.chat.completions.create({
+      model: modelName,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt }
+      ],
+      temperature: 0.2,
+      max_tokens: 1000
+    });
+    const content = response.choices[0].message.content;
+    console.log('[PortfolioManager] OpenAI response:', content);
+    if (!content) throw new Error('Empty response from OpenAI');
+    // 解析JSON，清理控制字符
+    const jsonMatch = content.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      const cleanJson = jsonMatch[0].replace(/[\u0000-\u001F\u007F-\u009F]/g, '');
+      try {
+        const result = JSON.parse(cleanJson) as { decisions: Record<string, any> };
+        // === 结构转换：补全 PortfolioDecision 类型 ===
+        const output: PortfolioManagerOutput = { decisions: {} };
+        for (const ticker of tickers) {
+          const llmDecision = result.decisions[ticker] || {};
+          // action 映射
+          let finalDecision: 'BUY' | 'SELL' | 'HOLD' = 'HOLD';
+          if (llmDecision.action) {
+            const actionStr = String(llmDecision.action).toUpperCase();
+            if (actionStr === 'BUY') finalDecision = 'BUY';
+            else if (actionStr === 'SELL') finalDecision = 'SELL';
+            else finalDecision = 'HOLD'; // short/cover/hold等都归为HOLD
+          }
+          output.decisions[ticker] = {
+            symbol: ticker,
+            finalDecision,
+            confidence: llmDecision.confidence || 0,
+            reasoning: llmDecision.reasoning || 'No reasoning provided.',
+            agentDecisions: [], // 可后续补充各 agent 信号
+            fundamentals: {
+              valuation: '',
+              growth: '',
+              profitability: '',
+              financialHealth: ''
+            },
+            sentiment: {
+              analystRating: '',
+              newsSentiment: '',
+              institutionalHoldings: ''
+            },
+            technicals: {
+              trend: '',
+              momentum: '',
+              volatility: ''
+            },
+            // 新增，保留 LLM 原始 action/quantity
+            action: llmDecision.action || 'hold',
+            quantity: llmDecision.quantity ?? 0,
+          };
+        }
+        return output;
+      } catch (parseError) {
+        console.error('[PortfolioManager] JSON parse error:', parseError, '\n原始内容:', cleanJson);
+        throw parseError;
+      }
+    }
+    throw new Error('Unable to extract JSON from response');
+  } catch (error) {
+    console.error('[PortfolioManager] OpenAI 调用异常:', error);
+    // 兜底：所有 ticker 默认 hold
+    const fallback: PortfolioManagerOutput = { decisions: {} };
+    for (const ticker of tickers) {
+      fallback.decisions[ticker] = {
+        symbol: ticker,
+        finalDecision: 'HOLD',
+        confidence: 0,
+        reasoning: 'Error in portfolio management, defaulting to hold.',
+        agentDecisions: [],
+        fundamentals: {
+          valuation: '',
+          growth: '',
+          profitability: '',
+          financialHealth: ''
+        },
+        sentiment: {
+          analystRating: '',
+          newsSentiment: '',
+          institutionalHoldings: ''
+        },
+        technicals: {
+          trend: '',
+          momentum: '',
+          volatility: ''
+        },
+        action: 'hold',
+        quantity: 0,
+      };
+    }
+    return fallback;
+  }
 } 
