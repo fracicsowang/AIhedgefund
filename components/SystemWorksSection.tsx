@@ -18,11 +18,10 @@ export default function SystemWorksSection() {
         </div>
         
         {/* Principle diagram - using blue gradient background blended with image */}
-        <div className="flex justify-center mb-12 bg-gradient-to-b from-blue-50 to-white py-8 rounded-xl">
-          <div className="relative w-full max-w-3xl h-[460px] overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-50 via-white to-blue-50 opacity-75 z-0"></div>
+        <div className="flex justify-center mb-12" style={{ backgroundColor: 'rgb(224, 224, 224)', borderRadius: '0.75rem' }}>
+          <div className="relative w-full max-w-3xl h-[520px] overflow-hidden">
             <Image 
-              src="/images/principle.png" 
+              src="/target.png" 
               alt="AI Hedge Fund System Principle" 
               fill
               className="object-contain z-10 relative"

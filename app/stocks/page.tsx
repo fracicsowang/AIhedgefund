@@ -140,4 +140,10 @@ export default function StocksPage() {
       <Footer />
     </div>
   );
-} 
+}
+
+export const metadata = {
+  title: 'Stocks | Legends AI - AI Agents for Stock Analysis',
+  description: 'Explore real-time stock analysis powered by AI agents and legendary investor strategies. Get hedge fund-level insights and smart investment signals for your portfolio.',
+  keywords: 'stocks, AI agent, stock analysis, hedge fund, investment, trading signals, legendary investors, portfolio, smart investing',
+}; 

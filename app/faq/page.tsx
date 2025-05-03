@@ -129,4 +129,10 @@ export default function FAQPage() {
       <Footer />
     </div>
   );
-} 
+}
+
+export const metadata = {
+  title: 'FAQ | Legends AI - AI Agents & Hedge Fund Q&A',
+  description: 'Frequently asked questions about Legends AI, AI investment agents, hedge fund strategies, and how to use the platform for smarter investing.',
+  keywords: 'FAQ, questions, AI agent, hedge fund, investment, smart investing, platform help, legendary investors',
+}; 

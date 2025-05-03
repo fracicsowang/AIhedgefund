@@ -651,7 +651,7 @@ export default function StockAnalysisPage() {
   // 新增：分析模式切换时拦截未登录用户
   const handleModeChange = (mode: 'portfolio' | 'single') => {
     if (mode === 'portfolio' && !user) {
-      alert('请先登录后再使用"我的持仓分析"功能！');
+      alert('Log in to use the portfolio analysis tool！');
       router.push('/login');
       return;
     }

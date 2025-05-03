@@ -154,4 +154,10 @@ export default function SignupPage() {
       <Footer />
     </div>
   );
-} 
+}
+
+export const metadata = {
+  title: 'Sign Up | Legends AI - Join AI Investment Platform',
+  description: 'Create your free account on Legends AI to access AI agent-powered investment tools, hedge fund strategies, and smart portfolio management.',
+  keywords: 'sign up, register, AI agent, hedge fund, investment, portfolio, smart investing, free account',
+}; 

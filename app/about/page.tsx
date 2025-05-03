@@ -9,133 +9,99 @@ export default function AboutPage() {
       <Navbar user={null} />
       
       <main className="flex-grow">
-        {/* About Us Hero Section */}
+        <section className="bg-white py-12">
+          <div className="container mx-auto px-4 flex flex-col items-center">
+            <img src="/creater.png" alt="Francisco Wang" className="w-40 h-40 rounded-full object-cover shadow-lg mb-6 border-4 border-white" />
+          </div>
+        </section>
         <section className="bg-blue-900 text-white py-16">
           <div className="container mx-auto px-4">
             <div className="max-w-3xl mx-auto text-center">
-              <h1 className="text-4xl font-bold mb-4">About Us</h1>
-              <p className="text-xl">
-                AI Hedge Fund is your intelligent investment assistant, combining strategies from multiple investment masters to provide you with smarter investment decisions.
+              <h1 className="text-4xl font-bold mb-4">About Legends AI</h1>
+              <p className="text-xl mb-8">Hi, I'm Francisco Wang — the creator of Legends AI.</p>
+              <p className="text-lg mb-6">
+                A few years ago, I started my career as a railway signaling engineer. Since then, I've worn many hats: project manager, Latin America regional business director, CEO of a U.S. subsidiary, and later an Executive Director in a leading private equity fund, focusing on advanced manufacturing, renewable energy, and the digital economy. Today, I work as a research fellow at a university in the United States.
               </p>
-            </div>
-          </div>
-        </section>
-        
-        {/* Our Mission */}
-        <section className="py-16">
-          <div className="container mx-auto px-4">
-            <div className="max-w-3xl mx-auto">
-              <h2 className="text-3xl font-bold mb-6 text-center">Our Mission</h2>
-              <p className="text-lg text-gray-700 mb-6">
-                Our mission is to leverage artificial intelligence to bring the best investment thinking and strategies to every investor, regardless of their experience level or financial resources.
+              <p className="text-lg mb-6">
+                Outside of my professional journey, I've always been passionate about exploring artificial intelligence and the stock market. This app was inspired by an open-source project by Virat Singh on GitHub, and I wanted to build on that idea to create a smarter, more user-friendly investment analysis tool.
               </p>
-              <p className="text-lg text-gray-700 mb-6">
-                Traditionally, obtaining high-quality investment advice required paying expensive consulting fees or studying complex investment theories. AI Hedge Fund changes that - we believe everyone should have access to quality investment wisdom.
+              <p className="text-lg mb-6">
+                Legends AI is my attempt to blend the wisdom of legendary investors with the power of AI — to help everyday investors navigate the markets with confidence.
               </p>
-              <p className="text-lg text-gray-700">
-                By combining strategies from multiple investment masters with cutting-edge AI technology, we provide comprehensive, balanced investment analysis to help users make smarter decisions in complex and volatile markets.
+              <p className="text-lg mb-6">
+                This project is non-profit and open to all. Thank you for using this app. I hope it brings you insights, confidence, and a little bit of luck in your investment journey!
               </p>
-            </div>
-          </div>
-        </section>
-        
-        {/* Our Team */}
-        <section className="py-16 bg-gray-50">
-          <div className="container mx-auto px-4">
-            <h2 className="text-3xl font-bold mb-12 text-center">Our Team</h2>
-            
-            <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-              {/* Team Member 1 */}
-              <div className="bg-white rounded-lg shadow-md p-6 text-center">
-                <div className="w-24 h-24 rounded-full bg-blue-100 mx-auto mb-4 overflow-hidden flex items-center justify-center">
-                  <svg className="w-16 h-16 text-blue-900" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                  </svg>
-                </div>
-                <h3 className="text-xl font-bold mb-1">Michael Johnson</h3>
-                <p className="text-blue-900 mb-3">Chief Executive Officer</p>
-                <p className="text-gray-600 text-sm">
-                  Former Wall Street hedge fund manager with 15 years of experience in financial markets, focused on applying AI technology to investment decisions.
-                </p>
-              </div>
-              
-              {/* Team Member 2 */}
-              <div className="bg-white rounded-lg shadow-md p-6 text-center">
-                <div className="w-24 h-24 rounded-full bg-blue-100 mx-auto mb-4 overflow-hidden flex items-center justify-center">
-                  <svg className="w-16 h-16 text-blue-900" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                  </svg>
-                </div>
-                <h3 className="text-xl font-bold mb-1">Sarah Chen</h3>
-                <p className="text-blue-900 mb-3">Chief Technology Officer</p>
-                <p className="text-gray-600 text-sm">
-                  AI expert who has held key positions at several tech giants, responsible for designing and optimizing our AI models and algorithms.
-                </p>
-              </div>
-              
-              {/* Team Member 3 */}
-              <div className="bg-white rounded-lg shadow-md p-6 text-center">
-                <div className="w-24 h-24 rounded-full bg-blue-100 mx-auto mb-4 overflow-hidden flex items-center justify-center">
-                  <svg className="w-16 h-16 text-blue-900" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                  </svg>
-                </div>
-                <h3 className="text-xl font-bold mb-1">David Reynolds</h3>
-                <p className="text-blue-900 mb-3">Chief Research Officer</p>
-                <p className="text-gray-600 text-sm">
-                  Finance PhD focused on quantitative investment research, responsible for transforming investment master strategies into quantifiable algorithmic models.
-                </p>
-              </div>
             </div>
           </div>
         </section>
         
         {/* Investment Masters */}
-        <section className="py-16">
+        <section className="py-16 bg-gray-50">
           <div className="container mx-auto px-4">
             <h2 className="text-3xl font-bold mb-12 text-center">Investment Masters We Model</h2>
-            
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
-              <div className="border border-gray-200 rounded-lg p-4">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+              {/* Buffett */}
+              <div className="bg-white rounded-lg shadow-md p-6 flex flex-col items-center">
+                <img src="/images/legends/Buffett.png" alt="Warren Buffett" className="w-24 h-24 rounded-full object-cover mb-4 border-4 border-gray-100" />
                 <h3 className="text-xl font-bold mb-2">Warren Buffett</h3>
-                <p className="text-gray-600 text-sm">
-                  Icon of value investing who focuses on finding quality companies with enduring competitive advantages and emphasizes long-term holding.
-                </p>
+                <p className="italic text-blue-900 mb-2 text-center">“Price is what you pay. Value is what you get.”</p>
+                <p className="text-gray-700 text-center">Icon of value investing, focuses on quality companies with enduring competitive advantages and long-term holding.</p>
               </div>
-              
-              <div className="border border-gray-200 rounded-lg p-4">
+              {/* Graham */}
+              <div className="bg-white rounded-lg shadow-md p-6 flex flex-col items-center">
+                <img src="/images/legends/graham.png" alt="Benjamin Graham" className="w-24 h-24 rounded-full object-cover mb-4 border-4 border-gray-100" />
                 <h3 className="text-xl font-bold mb-2">Benjamin Graham</h3>
-                <p className="text-gray-600 text-sm">
-                  Father of value investing who emphasizes margin of safety, seeks undervalued stocks, and focuses on a company's intrinsic value.
-                </p>
+                <p className="italic text-blue-900 mb-2 text-center">“The essence of investment management is the management of risks, not the management of returns.”</p>
+                <p className="text-gray-700 text-center">Father of value investing, emphasizes margin of safety and intrinsic value.</p>
               </div>
-              
-              <div className="border border-gray-200 rounded-lg p-4">
+              {/* Peter Lynch */}
+              <div className="bg-white rounded-lg shadow-md p-6 flex flex-col items-center">
+                <img src="/images/legends/lynch.png" alt="Peter Lynch" className="w-24 h-24 rounded-full object-cover mb-4 border-4 border-gray-100" />
                 <h3 className="text-xl font-bold mb-2">Peter Lynch</h3>
-                <p className="text-gray-600 text-sm">
-                  Growth investment expert who prefers investing in companies with sustainable growth, emphasizing field research and deep industry understanding.
-                </p>
+                <p className="italic text-blue-900 mb-2 text-center">“Know what you own, and know why you own it.”</p>
+                <p className="text-gray-700 text-center">Growth investing expert, prefers companies with sustainable growth and deep industry understanding.</p>
               </div>
-              
-              <div className="border border-gray-200 rounded-lg p-4">
+              {/* Charlie Munger */}
+              <div className="bg-white rounded-lg shadow-md p-6 flex flex-col items-center">
+                <img src="/images/legends/munger.png" alt="Charlie Munger" className="w-24 h-24 rounded-full object-cover mb-4 border-4 border-gray-100" />
                 <h3 className="text-xl font-bold mb-2">Charlie Munger</h3>
-                <p className="text-gray-600 text-sm">
-                  Advocate of multidisciplinary thinking models who emphasizes quality over quantity and seeks businesses with economic moats.
-                </p>
+                <p className="italic text-blue-900 mb-2 text-center">“The big money is not in the buying and selling, but in the waiting.”</p>
+                <p className="text-gray-700 text-center">Advocate of multidisciplinary thinking, emphasizes quality and economic moats.</p>
               </div>
-              
-              <div className="border border-gray-200 rounded-lg p-4">
-                <h3 className="text-xl font-bold mb-2">George Soros</h3>
-                <p className="text-gray-600 text-sm">
-                  Global macro investor skilled at identifying market trends and turning points, emphasizing market reflexivity theory.
-                </p>
+              {/* Bill Ackman */}
+              <div className="bg-white rounded-lg shadow-md p-6 flex flex-col items-center">
+                <img src="/images/legends/Ackman.png" alt="Bill Ackman" className="w-24 h-24 rounded-full object-cover mb-4 border-4 border-gray-100" />
+                <h3 className="text-xl font-bold mb-2">Bill Ackman</h3>
+                <p className="italic text-blue-900 mb-2 text-center">“If you want to have a better performance than the crowd, you must do things differently from the crowd.”</p>
+                <p className="text-gray-700 text-center">Activist investor, focuses on high-quality businesses and value creation through change.</p>
               </div>
-              
-              <div className="border border-gray-200 rounded-lg p-4">
-                <h3 className="text-xl font-bold mb-2">Jack Bogle</h3>
-                <p className="text-gray-600 text-sm">
-                  Pioneer of index investing who emphasizes the importance of low costs, diversification, and long-term investing.
-                </p>
+              {/* Michael Burry */}
+              <div className="bg-white rounded-lg shadow-md p-6 flex flex-col items-center">
+                <img src="/images/legends/Burry.png" alt="Michael Burry" className="w-24 h-24 rounded-full object-cover mb-4 border-4 border-gray-100" />
+                <h3 className="text-xl font-bold mb-2">Michael Burry</h3>
+                <p className="italic text-blue-900 mb-2 text-center">“It is in the anomalies that new ideas and fortunes are made.”</p>
+                <p className="text-gray-700 text-center">Famous for predicting the subprime crisis, focuses on deep value and contrarian investing.</p>
+              </div>
+              {/* Phil Fisher */}
+              <div className="bg-white rounded-lg shadow-md p-6 flex flex-col items-center">
+                <img src="/images/legends/Fisher.png" alt="Phil Fisher" className="w-24 h-24 rounded-full object-cover mb-4 border-4 border-gray-100" />
+                <h3 className="text-xl font-bold mb-2">Phil Fisher</h3>
+                <p className="italic text-blue-900 mb-2 text-center">“The stock market is filled with individuals who know the price of everything, but the value of nothing.”</p>
+                <p className="text-gray-700 text-center">Pioneer of growth investing, emphasizes management quality and long-term innovation.</p>
+              </div>
+              {/* Stanley Druckenmiller */}
+              <div className="bg-white rounded-lg shadow-md p-6 flex flex-col items-center">
+                <img src="/images/legends/druckenmiller.png" alt="Stanley Druckenmiller" className="w-24 h-24 rounded-full object-cover mb-4 border-4 border-gray-100" />
+                <h3 className="text-xl font-bold mb-2">Stanley Druckenmiller</h3>
+                <p className="italic text-blue-900 mb-2 text-center">“The best investors have no loyalty or love for an investment. The only thing they are wedded to is the right side of the market.”</p>
+                <p className="text-gray-700 text-center">Legendary macro trader, known for flexibility and bold bets on global trends.</p>
+              </div>
+              {/* Cathie Wood */}
+              <div className="bg-white rounded-lg shadow-md p-6 flex flex-col items-center">
+                <img src="/images/legends/wood.png" alt="Cathie Wood" className="w-24 h-24 rounded-full object-cover mb-4 border-4 border-gray-100" />
+                <h3 className="text-xl font-bold mb-2">Cathie Wood</h3>
+                <p className="italic text-blue-900 mb-2 text-center">“Innovation is key to growth, and disruptive innovation is key to extraordinary growth.”</p>
+                <p className="text-gray-700 text-center">Focuses on disruptive innovation and high-growth technology companies.</p>
               </div>
             </div>
           </div>
@@ -145,7 +111,7 @@ export default function AboutPage() {
         <section className="py-16 bg-gray-50">
           <div className="container mx-auto px-4">
             <div className="max-w-3xl mx-auto text-center">
-              <h2 className="text-3xl font-bold mb-6">Contact Us</h2>
+              <h2 className="text-3xl font-bold mb-6">Contact Me</h2>
               <p className="text-lg text-gray-700 mb-8">
                 Have any questions or suggestions? We'd love to hear from you!
               </p>
@@ -155,20 +121,9 @@ export default function AboutPage() {
                   <svg className="w-6 h-6 text-blue-900 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
                   </svg>
-                  <span>support@aihedgefund.com</span>
-                </div>
-                
-                <div className="flex items-center justify-center">
-                  <svg className="w-6 h-6 text-blue-900 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
-                  </svg>
-                  <span>400-888-7777</span>
+                  <span>francisco.wang@gmail.com</span>
                 </div>
               </div>
-              
-              <button className="bg-blue-900 text-white font-bold py-3 px-8 rounded-md hover:bg-blue-800 transition-colors">
-                Send Message
-              </button>
             </div>
           </div>
         </section>
@@ -177,4 +132,10 @@ export default function AboutPage() {
       <Footer />
     </div>
   );
-} 
+}
+
+export const metadata = {
+  title: 'About | Legends AI - Legendary Investors & AI Agents',
+  description: 'Learn about Legends AI, a non-profit platform blending legendary investor wisdom and AI agents for smarter investment and hedge fund strategies. Created by Francisco Wang.',
+  keywords: 'about, AI agent, legendary investors, hedge fund, investment, Francisco Wang, open source, smart investing',
+}; 

@@ -78,54 +78,10 @@ export default function DashboardPage() {
                     Account type: <span className="font-medium">Free User</span>
                   </p>
                 </div>
-                <div className="mt-4 md:mt-0">
-                  <Link href="/pricing">
-                    <button className="bg-blue-900 text-white px-4 py-2 rounded-md hover:bg-blue-800 transition-colors">
-                      Upgrade Account
-                    </button>
-                  </Link>
-                </div>
               </div>
             </div>
             
-            {/* Stocks list */}
-            <section className="mb-12">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-2xl font-semibold">Your Watched Stocks</h2>
-                <Link href="/stocks" className="text-blue-900 font-medium flex items-center hover:text-blue-700">
-                  View More
-                  <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
-                  </svg>
-                </Link>
-              </div>
-              
-              {loading ? (
-                <div className="text-center py-12">
-                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-900"></div>
-                  <p className="mt-2 text-gray-600">Loading watched stocks data...</p>
-                </div>
-              ) : error ? (
-                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-                  {error}
-                </div>
-              ) : stocks.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {stocks.map((stock: StockData) => (
-                    <StockCard key={stock.symbol} stock={stock} />
-                  ))}
-                </div>
-              ) : (
-                <div className="bg-gray-100 rounded-lg p-6 text-center">
-                  <p className="text-gray-600 mb-4">You haven't watched any stocks yet or loading failed</p>
-                  <Link href="/stocks">
-                    <button className="bg-blue-900 text-white px-4 py-2 rounded-md hover:bg-blue-800 transition-colors">
-                      Browse Stocks
-                    </button>
-                  </Link>
-                </div>
-              )}
-            </section>
+           
             
             {/* Quick Analysis */}
             <section className="mb-12">
@@ -157,15 +113,7 @@ export default function DashboardPage() {
                 </div>
                 
                 <div className="p-4 text-center text-gray-600">
-                  No trading recommendations yet. Upgrade to premium to get AI trading recommendations.
-                </div>
-                
-                <div className="p-4 bg-gray-50 text-center">
-                  <Link href="/pricing">
-                    <button className="bg-blue-900 text-white px-4 py-2 rounded-md hover:bg-blue-800 transition-colors">
-                      Upgrade Account
-                    </button>
-                  </Link>
+                  No trading recommendations yet.
                 </div>
               </div>
             </section>

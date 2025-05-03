@@ -14,11 +14,6 @@ export default function Footer() {
             </Link>
           </div>
           <div className="px-5 py-2">
-            <Link href="/pricing" className="text-base hover:text-white">
-              Subscription Plans
-            </Link>
-          </div>
-          <div className="px-5 py-2">
             <Link href="/privacy" className="text-base hover:text-white">
               Privacy Policy
             </Link>

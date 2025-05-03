@@ -22,8 +22,9 @@ const Navbar: React.FC<NavbarProps> = ({ user }) => {
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center py-4">
           <div className="flex items-center">
-            <Link href="/" className="text-xl font-bold text-blue-900">
-              AI Hedge Fund
+            <Link href="/" className="flex items-center text-xl font-bold text-blue-900">
+              <img src="/logo.png" alt="Legend AI Logo" className="h-8 w-8 mr-2" />
+              Legend AI
             </Link>
           </div>
           
@@ -37,9 +38,6 @@ const Navbar: React.FC<NavbarProps> = ({ user }) => {
                 My Account
               </Link>
             )}
-            <Link href="/pricing" className="text-gray-700 hover:text-blue-900">
-              Subscription Plans
-            </Link>
             <Link href="/about" className="text-gray-700 hover:text-blue-900">
               About Us
             </Link>
@@ -102,9 +100,6 @@ const Navbar: React.FC<NavbarProps> = ({ user }) => {
                   My Account
                 </Link>
               )}
-              <Link href="/pricing" className="text-gray-700 hover:text-blue-900 py-2">
-                Subscription Plans
-              </Link>
               <Link href="/about" className="text-gray-700 hover:text-blue-900 py-2">
                 About Us
               </Link>

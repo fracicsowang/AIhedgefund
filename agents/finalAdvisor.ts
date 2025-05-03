@@ -28,7 +28,21 @@ export async function finalAdvisorAgent({
   apiKey
 }: FinalAdvisorInput): Promise<FinalAdvisorOutput> {
   const openai = new OpenAI({ apiKey });
-  const systemPrompt = `你是一个专业的投资组合顾问，请根据以下所有分析结果，给出一份面向用户的最终投资建议，内容包括：\n1. 总体建议（如继续持有、适度加仓、减仓、观望等）\n2. 主要理由（引用大师分析、风控、组合建议等核心结论）\n3. 风险提示（如持仓过于集中、现金过低等）\n4. 可操作清单（如建议卖出/买入哪些股票、数量、理由）\n\n请用简明、专业、面向普通投资者的语言输出，最后用JSON格式返回：\n{\n  "summary": "总体建议",\n  "risk": "风险提示",\n  "actions": [\n    { "ticker": "AAPL", "suggestion": "SELL", "quantity": 100, "reason": "..." },\n    ...\n  ]\n}`;
+  const systemPrompt = `You are a professional portfolio advisor. Based on the following analysis results, provide a final investment suggestion for the user, including:
+1. Overall suggestion (e.g., continue to hold, moderately increase position, reduce position, wait and see, etc.)
+2. Main reasons (cite key conclusions from agent analysis, risk control, portfolio suggestions, etc.)
+3. Risk reminder (e.g., position too concentrated, low cash, etc.)
+4. Actionable checklist (e.g., suggest which stocks to buy/sell, quantity, reason)
+
+Please output in concise, professional, and user-friendly English. Return the result in JSON format as follows:
+{
+  "summary": "Overall suggestion",
+  "risk": "Risk reminder",
+  "actions": [
+    { "ticker": "AAPL", "suggestion": "SELL", "quantity": 100, "reason": "..." },
+    ...
+  ]
+}`;
 
   const userPrompt = `【大师分析结果】\n${JSON.stringify(analystSignals, null, 2)}\n\n【风控分析】\n${JSON.stringify(riskManagerResult, null, 2)}\n\n【组合建议】\n${JSON.stringify(portfolioManagerResult, null, 2)}\n\n【用户持仓】\n${JSON.stringify(portfolio, null, 2)}`;
 
